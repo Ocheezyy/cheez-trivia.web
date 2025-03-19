@@ -1,15 +1,41 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Scroll } from "lucide-react";
+import { useSocket } from "@/hooks/useSocket";
+import { RoomData } from "@/lib/types";
+import { toast } from "sonner";
 
 export default function HomePage() {
+    const socket = useSocket();
     const [roomId, setRoomId] = useState<string>("");
     const [name, setName] = useState<string>("");
+
+    const joinRoom = () => {
+        // Hit api route to check if room exists
+        if (socket && roomId && name) {
+            socket.emit('joinRoom', { roomId, name });
+            toast("Joining room...");
+        } else {
+            toast("Failed to join a room");
+        }
+    }
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('playerJoined', (data: RoomData) => {
+                console.log(`Joined room:`, data);
+            });
+        }
+
+        return () => {
+            if (socket) { socket.off('playerJoined'); }
+        };
+    }, [socket]);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -36,7 +62,7 @@ export default function HomePage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full">Join Game</Button>
+                        <Button className="w-full" onClick={joinRoom}>Join Game</Button>
                     </CardFooter>
                 </Card>
 
