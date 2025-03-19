@@ -85,8 +85,8 @@ export default function HomePage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" onClick={joinRoom} disabled={!isJoining}>
-                            Join Game <Spinner />
+                        <Button className="w-full" onClick={joinRoom} disabled={isJoining}>
+                            Join Game {isJoining ? <Spinner /> : null}
                         </Button>
                     </CardFooter>
                 </Card>
