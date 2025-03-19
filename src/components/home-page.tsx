@@ -28,7 +28,8 @@ export default function HomePage() {
             socket.emit('joinRoom', roomId, name);
             toast("Joining room...");
         } else {
-            toast("Failed to join a room");
+            toast("Unable to join, please refresh");
+            setIsJoining(false);
         }
     }
 
@@ -40,7 +41,6 @@ export default function HomePage() {
                 router.push("/game");
             });
         }
-        setIsJoining(false);
 
         return () => {
             if (socket) { socket.off('playerJoined'); }
@@ -51,9 +51,9 @@ export default function HomePage() {
         if (socket) {
             socket.on('joinFailed', () => {
                 toast.error("Failed to join room");
+                setIsJoining(false);
             });
         }
-        setIsJoining(false);
 
         return () => {
             if (socket) { socket.off('joinFailed'); }
