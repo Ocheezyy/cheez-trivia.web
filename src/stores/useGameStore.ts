@@ -1,69 +1,88 @@
 import { create } from 'zustand';
-import type { Message, Player, Question } from "@/lib/types";
+import { Message, Player, RoomData, TimeLimit } from "@/lib/types";
 
 type GameState = {
-    gameId: string;
+    roomData: RoomData;
     playerName: string;
-    players: Player[];
-    questions: Question[];
-    messages: Message[];
-    currentQuestion: Question | null;
     isHost: boolean;
-    gameStarted: boolean;
+    joinRoom: (roomData: RoomData) => void;
     addPlayer: (player: Player) => void;
     setPlayerName: (name: string) => void;
     updatePlayerScore: (playerId: string, score: number) => void;
-    setQuestions: (questions: Question[]) => void;
-    setCurrentQuestion: (question: Question) => void;
-    setIsHost: (isHost: boolean) => void;
+    setCurrentQuestion: (questionNum: number) => void;
     startGame: () => void;
     resetGame: () => void;
-    setMessages: (messages: Message[]) => void;
+    messageReceived: (message: Message) => void;
 };
 
-export const useGameStore = create<GameState>((set) => ({
-    // Initial state
-    gameId: '',
-    playerName: "",
-    players: [],
-    questions: [],
-    messages: [],
-    currentQuestion: null,
+const useGameStore = create<GameState>((set) => ({
+    roomData: {
+        gameId: '',
+        players: [],
+        host: '',
+        questions: [],
+        messages: [],
+        currentQuestion: 1,
+        gameStarted: false,
+        category: 9,
+        difficulty: 'mixed',
+        timeLimit: "30" as TimeLimit,
+    },
+    playerName: '',
     isHost: false,
-    gameStarted: false,
 
-    // Actions (setters)
-    addPlayer: (player) =>
-        set((state) => ({
-            players: [...state.players, player],
-        })),
+    joinRoom: (roomData) => set({ roomData }),
 
-    updatePlayerScore: (playerName, score) =>
-        set((state) => ({
-            players: state.players.map((player) =>
-                player.name === playerName ? { ...player, score } : player
+    addPlayer: (player) => set((state) => ({
+        roomData: {
+            ...state.roomData,
+            players: [...state.roomData.players, player],
+        },
+    })),
+
+    setPlayerName: (name) => set({ playerName: name }),
+
+    updatePlayerScore: (playerId, score) => set((state) => ({
+        roomData: {
+            ...state.roomData,
+            players: state.roomData.players.map((player) =>
+                player.id === playerId ? { ...player, score } : player
             ),
-        })),
+        },
+    })),
 
-    setPlayerName: (name: string) =>
-        set({ playerName: name }),
+    setCurrentQuestion: (questionNum) => set((state) => ({
+        roomData: {
+            ...state.roomData,
+            currentQuestion: questionNum,
+        },
+    })),
 
-    setQuestions: (questions) => set({ questions }),
+    startGame: () => set((state) => ({
+        roomData: {
+            ...state.roomData,
+            gameStarted: true,
+        },
+    })),
 
-    setCurrentQuestion: (question) => set({ currentQuestion: question }),
-
-    setMessages: (messages) => set({ messages }),
-
-    setIsHost: (isHost) => set({ isHost }),
-
-    startGame: () => set({ gameStarted: true }),
-
-    resetGame: () =>
-        set({
-            players: [],
-            questions: [],
-            currentQuestion: null,
-            isHost: false,
+    resetGame: () => set((state) => ({
+        roomData: {
+            ...state.roomData,
             gameStarted: false,
-        }),
+            currentQuestion: 0,
+            players: state.roomData.players.map((player) => ({
+                ...player,
+                score: 0,
+            })),
+        },
+    })),
+
+    messageReceived: (message) => set((state) => ({
+        roomData: {
+            ...state.roomData,
+            messages: [...state.roomData.messages, message],
+        },
+    })),
 }));
+
+export default useGameStore;
