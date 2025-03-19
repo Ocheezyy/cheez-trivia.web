@@ -42,7 +42,7 @@ export default function CreateGamePage() {
         }
 
         if (socket) {
-            socket.emit('createRoom', { name, numQuestions, categoryId, difficulty, timeLimit });
+            socket.emit('createRoom', name, numQuestions, Number(categoryId), difficulty, timeLimit);
             toast("Creating room...");
         } else {
             toast("Failed to create a room");

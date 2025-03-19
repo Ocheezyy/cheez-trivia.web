@@ -22,14 +22,15 @@ interface Player {
 }
 
 interface GameOverProps {
-    players: Player[]
+    players: Player[];
     gameSettings: {
         category: string
         difficulty: string
         totalQuestions: number
-    }
-    onPlayAgain: () => void
+    };
+    onPlayAgain: () => void;
 }
+
 
 export default function GameOver({ players, gameSettings, onPlayAgain }: GameOverProps) {
     const router = useRouter()

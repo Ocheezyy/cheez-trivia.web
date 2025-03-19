@@ -9,16 +9,23 @@ import { Scroll } from "lucide-react";
 import { useSocket } from "@/hooks/useSocket";
 import { RoomData } from "@/lib/types";
 import { toast } from "sonner";
+import useGameStore from "@/stores/useGameStore";
+import { useRouter } from "next/navigation";
+import Spinner from "@/components/spinner";
 
 export default function HomePage() {
     const socket = useSocket();
+    const router = useRouter();
     const [roomId, setRoomId] = useState<string>("");
     const [name, setName] = useState<string>("");
+    const [isJoining, setIsJoining] = useState<boolean>(false);
+    const storeJoinRoom = useGameStore(state => state.joinRoom);
 
     const joinRoom = () => {
+        setIsJoining(true);
         // Hit api route to check if room exists
         if (socket && roomId && name) {
-            socket.emit('joinRoom', { roomId, name });
+            socket.emit('joinRoom', roomId, name);
             toast("Joining room...");
         } else {
             toast("Failed to join a room");
@@ -28,12 +35,28 @@ export default function HomePage() {
     useEffect(() => {
         if (socket) {
             socket.on('playerJoined', (data: RoomData) => {
+                storeJoinRoom(data);
                 console.log(`Joined room:`, data);
+                router.push("/game");
             });
         }
+        setIsJoining(false);
 
         return () => {
             if (socket) { socket.off('playerJoined'); }
+        };
+    }, [socket, storeJoinRoom, router]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('joinFailed', () => {
+                toast.error("Failed to join room");
+            });
+        }
+        setIsJoining(false);
+
+        return () => {
+            if (socket) { socket.off('joinFailed'); }
         };
     }, [socket]);
 
@@ -62,7 +85,9 @@ export default function HomePage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" onClick={joinRoom}>Join Game</Button>
+                        <Button className="w-full" onClick={joinRoom} disabled={!isJoining}>
+                            Join Game <Spinner />
+                        </Button>
                     </CardFooter>
                 </Card>
 

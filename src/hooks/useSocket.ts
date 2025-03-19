@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import type { TypedClientSocket } from "@/lib/types";
 
 export function useSocket() {
-    const [socket, setSocket] = useState<Socket | null>(null);
+    const [socket, setSocket] = useState<TypedClientSocket | null>(null);
 
     useEffect(() => {
-        const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_API_URL);
+        const newSocket: TypedClientSocket = io(process.env.NEXT_PUBLIC_SOCKET_API_URL) as TypedClientSocket;
         setSocket(newSocket);
 
         // Clean up on unmount

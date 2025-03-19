@@ -14,7 +14,6 @@ import { GameCard } from "@/app/game/game-card";
 import useGameStore from "@/stores/useGameStore";
 import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
-import {Message, UpdatePlayerScoreRes} from "@/lib/types";
 
 export default function GamePage() {
     const socket = useSocket();
@@ -48,7 +47,7 @@ export default function GamePage() {
         if (!messageVal) return;
 
         if (socket && roomData.gameId) {
-            socket.emit('sendMessage', { roomId: roomData.gameId, message: messageVal, user: playerName });
+            socket.emit('sendMessage', roomData.gameId, messageVal, playerName);
         } else {
             toast.error("Failed to send message");
         }
@@ -56,7 +55,7 @@ export default function GamePage() {
 
     useEffect(() => {
         if (socket) {
-            socket.on('receivedMessage', (data: Message) => messageReceived(data));
+            socket.on('receivedMessage', (message, playerName) => messageReceived({message, user: playerName}));
         }
 
         return () => { if (socket) { socket.off('receivedMessage'); } };
@@ -64,7 +63,7 @@ export default function GamePage() {
 
     const handleStartGame = () => {
         if (socket) {
-            socket.emit('startGame', { roomId: roomData.gameId });
+            socket.emit('startGame', roomData.gameId);
         } else {
             toast.error("Failed to start game");
         }
@@ -87,14 +86,14 @@ export default function GamePage() {
         const points = isCorrect ? basePoints + timeBonus : 0;
 
         if (socket) {
-            socket.emit('submitAnswer', { roomId: roomData.gameId, playerName, points});
+            socket.emit('submitAnswer', roomData.gameId, playerName, points);
         }
         setHasAnswered(true);
     }
 
     useEffect(() => {
         if (socket) {
-            socket.on('updatePlayerScore', ({ playerName, score }: UpdatePlayerScoreRes) => updatePlayerScore(playerName, score));
+            socket.on('updatePlayerScore', (playerName, score) => updatePlayerScore(playerName, score));
         }
 
         return () => { if (socket) { socket.off('updatePlayerScore'); } };
@@ -102,7 +101,7 @@ export default function GamePage() {
 
     const handleNextQuestion = () => {
         if (socket) {
-            socket.emit('nextQuestion', { roomId: roomData.gameId, playerName });
+            socket.emit('nextQuestion', roomData.gameId, playerName);
         }
     }
 

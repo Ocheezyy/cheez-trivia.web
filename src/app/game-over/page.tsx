@@ -66,7 +66,7 @@ export default function GameOverPage() {
     const router = useRouter()
 
     const handlePlayAgain = () => {
-        router.push("/create-game")
+        router.push("/create-game");
     }
 
     return <GameOver players={samplePlayers} gameSettings={gameSettings} onPlayAgain={handlePlayAgain} />
