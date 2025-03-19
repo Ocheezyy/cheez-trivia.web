@@ -1,7 +1,12 @@
 export type Difficulty = "easy" | "medium" | "hard" | "mixed";
 export type TimeLimit = "15" | "30" | "45" | "60";
-export type SocketSendEvents = "createRoom" | "joinRoom" | "submitAnswer" | "sendMessage";
-export type SocketResponseEvents = "roomCreated" | "playerJoined" | "updatePlayerScore" | "joinFailed" | "receivedMessage";
+export type SocketSendEvents = "createRoom" | "joinRoom" | "submitAnswer" | "sendMessage" | "nextQuestion" | "startGame";
+export type SocketResponseEvents = "roomCreated" | "playerJoined" | "updatePlayerScore" | "joinFailed" | "receivedMessage" | "nextQuestion" | "gameStarted";
+
+export type UpdatePlayerScoreRes = {
+    playerName: string;
+    score: number;
+}
 
 export type Question = {
     type: "multiple" | "boolean";
@@ -9,8 +14,8 @@ export type Question = {
     category: string;
     question: string;
     correct_answer: string;
-    incorrect_answers: string[];
-}
+    all_answers: string[];
+};
 
 export type Player = {
     id: string;

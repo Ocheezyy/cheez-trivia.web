@@ -4,6 +4,8 @@ import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components
 import {Button} from "@/components/ui/button";
 import type React from "react";
 import {Badge} from "@/components/ui/badge";
+import {RoomData} from "@/lib/types";
+import {categories} from "@/lib/constants";
 
 type Question = {
     question: string;
@@ -12,7 +14,7 @@ type Question = {
 }
 
 type GameCardProps = {
-    gameStarted: boolean;
+    roomData: RoomData;
     questionAnswered: boolean;
     isHost: boolean;
     timeLeft: number;
@@ -25,8 +27,10 @@ type GameCardProps = {
     pointsEarned: number;
 }
 
-export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, question, handleStartGame, handleNextQuestion, pointsEarned }: GameCardProps) => {
-    if (!gameStarted) {
+export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, handleNextQuestion, pointsEarned }: GameCardProps) => {
+    const currentQuestion = roomData.questions[roomData.currentQuestion - 1];
+
+    if (!roomData.gameStarted) {
         return (
             <Card className="shadow-lg">
                 <CardHeader>
@@ -36,7 +40,7 @@ export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, sele
                     <div className="py-8">
                         <h3 className="text-xl font-medium mb-2">Room Code:</h3>
                         <div className="text-3xl font-bold tracking-widest bg-muted inline-block px-6 py-3 rounded-md">
-                            XYZW42
+                            {roomData.gameId}
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">
                             Share this code with your friends to join the game
@@ -46,10 +50,10 @@ export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, sele
                     <div className="space-y-2">
                         <h3 className="text-lg font-medium">Game Settings:</h3>
                         <div className="flex flex-wrap justify-center gap-2">
-                            <Badge variant="outline">10 Questions</Badge>
-                            <Badge variant="outline">Mixed Categories</Badge>
-                            <Badge variant="outline">Medium Difficulty</Badge>
-                            <Badge variant="outline">30s per Question</Badge>
+                            <Badge variant="outline">{roomData.questions.length} Questions</Badge>
+                            <Badge variant="outline">{categories.find(category => category.id === Number(roomData.category))?.name}</Badge>
+                            <Badge variant="outline">{roomData.difficulty} Difficulty</Badge>
+                            <Badge variant="outline">{roomData.timeLimit}s per Question</Badge>
                         </div>
                     </div>
 
@@ -74,7 +78,7 @@ export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, sele
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex flex-col items-center justify-center py-4">
-                        {selectedOption === question?.correctAnswer ? (
+                        {selectedOption === currentQuestion.correct_answer ? (
                             <>
                                 <CheckCircle2 className="h-16 w-16 text-green-500 mb-2" />
                                 <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">Correct!</h3>
@@ -89,14 +93,14 @@ export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, sele
 
                     <div className="bg-muted p-4 rounded-lg">
                         <p className="font-medium mb-2">Question:</p>
-                        <p className="mb-4">{question?.question}</p>
+                        <p className="mb-4">{currentQuestion.question}</p>
 
                         <p className="font-medium mb-2">Correct Answer:</p>
                         <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                            {question?.correctAnswer}
+                            {currentQuestion?.correct_answer}
                         </p>
 
-                        {selectedOption !== question?.correctAnswer && (
+                        {selectedOption !== currentQuestion?.correct_answer && (
                             <>
                                 <p className="font-medium mt-4 mb-2">Your Answer:</p>
                                 <p className="text-lg font-bold text-red-600 dark:text-red-400">{selectedOption}</p>
@@ -138,18 +142,18 @@ export const GameCard = ({ gameStarted, isHost, questionAnswered, timeLeft, sele
                     <CardTitle className="text-xl">Question 3 of 10</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <h3 className="text-2xl font-bold mb-6">{question?.question}</h3>
+                    <h3 className="text-2xl font-bold mb-6">{currentQuestion.question}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {question?.options.map((option, index) => (
+                        {currentQuestion.all_answers.map((answer, index) => (
                             <Button
                                 key={index}
-                                variant={selectedOption === option ? "default" : "outline"}
+                                variant={selectedOption === answer ? "default" : "outline"}
                                 className={`h-auto py-6 text-lg justify-start ${
-                                    selectedOption === option ? "border-primary" : ""
+                                    selectedOption === answer ? "border-primary" : ""
                                 }`}
-                                onClick={() => setSelectedOption(option)}
+                                onClick={() => setSelectedOption(answer)}
                             >
-                                <span className="mr-2">{String.fromCharCode(65 + index)}.</span> {option}
+                                <span className="mr-2">{String.fromCharCode(65 + index)}.</span> {answer}
                             </Button>
                         ))}
                     </div>

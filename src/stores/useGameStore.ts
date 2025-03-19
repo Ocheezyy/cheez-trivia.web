@@ -8,7 +8,7 @@ type GameState = {
     joinRoom: (roomData: RoomData) => void;
     addPlayer: (player: Player) => void;
     setPlayerName: (name: string) => void;
-    updatePlayerScore: (playerId: string, score: number) => void;
+    updatePlayerScore: (playerName: string, score: number) => void;
     setCurrentQuestion: (questionNum: number) => void;
     startGame: () => void;
     resetGame: () => void;
@@ -42,11 +42,11 @@ const useGameStore = create<GameState>((set) => ({
 
     setPlayerName: (name) => set({ playerName: name }),
 
-    updatePlayerScore: (playerId, score) => set((state) => ({
+    updatePlayerScore: (playerName, score) => set((state) => ({
         roomData: {
             ...state.roomData,
             players: state.roomData.players.map((player) =>
-                player.id === playerId ? { ...player, score } : player
+                player.name === playerName ? { ...player, score } : player
             ),
         },
     })),
@@ -61,6 +61,7 @@ const useGameStore = create<GameState>((set) => ({
     startGame: () => set((state) => ({
         roomData: {
             ...state.roomData,
+            messages: [ ...state.roomData.messages, { user: "System", message: "Game has started!" }],
             gameStarted: true,
         },
     })),
