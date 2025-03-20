@@ -32,7 +32,7 @@ export default function GamePage() {
     const setCurrentQuestion = useGameStore(state => state.setCurrentQuestion);
     const pointsEarned = roomData.players.find((p) => p.name === playerName)?.score || 0
 
-    console.log("gamePage", roomData);
+    // console.log("gamePage", roomData);
 
     useEffect(() => {
         if (roomData.gameStarted && timeLeft > 0) {
@@ -57,7 +57,8 @@ export default function GamePage() {
     useEffect(() => {
         if (socket) {
             socket.on('receivedMessage', (message, playerName) => {
-                messageReceived({message, user: playerName})
+                messageReceived({message, user: playerName});
+                setNewMessage("");
                 console.log("receivedMessage", message, playerName);
             });
         }
@@ -83,7 +84,10 @@ export default function GamePage() {
 
     useEffect(() => {
         if (socket) {
-            socket.on('playerJoined', (data) => playerJoined(data));
+            socket.on('playerJoined', (data) => {
+                playerJoined(data);
+                console.log("playerJoined", data.players);
+            });
         }
 
         return () => { if (socket) { socket.off('playerJoined'); } };

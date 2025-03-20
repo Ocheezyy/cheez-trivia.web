@@ -50,8 +50,8 @@ export default function HomePage() {
 
     useEffect(() => {
         if (socket) {
-            socket.on('joinFailed', () => {
-                toast.error("Failed to join room");
+            socket.on('joinFailed', (reason: string) => {
+                toast.error("Failed to join room: " + reason);
                 setIsJoining(false);
             });
         }
@@ -63,7 +63,7 @@ export default function HomePage() {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <h1 className="text-4xl font-bold text-center mb-8">Trivia Challenge</h1>
+            <h1 className="text-4xl font-bold text-center mb-8">Cheez Trivia</h1>
 
             <div className="grid md:grid-cols-2 gap-8">
                 <Card className="shadow-lg">
@@ -96,7 +96,7 @@ export default function HomePage() {
                     <Card className="shadow-lg">
                         <CardHeader>
                             <CardTitle>Create New Game</CardTitle>
-                            <CardDescription>Start a new trivia challenge</CardDescription>
+                            <CardDescription>Start a new game</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <p className="text-sm text-muted-foreground mb-4">

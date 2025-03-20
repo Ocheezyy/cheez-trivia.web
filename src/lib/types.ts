@@ -2,6 +2,7 @@ import { Socket } from 'socket.io-client';
 
 export type Difficulty = "easy" | "medium" | "hard" | "mixed";
 export type TimeLimit = "15" | "30" | "45" | "60";
+export type JoinFailedReason = "Room not found" | "Name not available";
 // export type SocketSendEvents = "createRoom" | "joinRoom" | "submitAnswer" | "sendMessage" | "nextQuestion" | "startGame";
 // export type SocketResponseEvents = "roomCreated" | "playerJoined" | "updatePlayerScore" | "joinFailed" | "receivedMessage" | "nextQuestion" | "gameStarted";
 
@@ -19,7 +20,7 @@ type SocketResponseEvents = {
     roomCreated: (data: RoomData) => void;
     playerJoined: (data: RoomData) => void;
     updatePlayerScore: (playerName: string, score: number) => void;
-    joinFailed: () => void;
+    joinFailed: (reason: JoinFailedReason) => void;
     receivedMessage: (message: string, playerName: string) => void;
     nextQuestion: (currentQuestion: number) => void;
     gameStarted: () => void;
