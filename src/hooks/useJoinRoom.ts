@@ -2,9 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { JoinRoomBody } from "@/lib/types";
 import { toast } from "sonner";
+import useGameStore from "@/stores/useGameStore";
 
 export const useJoinRoom = () => {
     const router = useRouter();
+    const setPlayerName = useGameStore(state => state.setPlayerName);
 
     return useMutation({
         mutationFn: async ({ playerName, roomId }: JoinRoomBody): Promise<JoinRoomBody> => {
@@ -30,6 +32,7 @@ export const useJoinRoom = () => {
             localStorage.setItem("roomId", data.roomId);
             localStorage.setItem("playerName", data.playerName);
             localStorage.setItem("isHost", "false");
+            setPlayerName(data.playerName);
             router.push(`/game`);
         },
         onError: (error) => {

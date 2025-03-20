@@ -6,7 +6,8 @@ import useGameStore from "@/stores/useGameStore";
 
 export const useCreateRoom = () => {
     const router = useRouter();
-    const setIsHost = useGameStore(state => state.setIsHost)
+    const setIsHost = useGameStore(state => state.setIsHost);
+    const setPlayerName = useGameStore(state => state.setPlayerName);
 
     return useMutation({
         mutationFn: async ({ playerName, numQuestions, categoryId, difficulty, timeLimit }: CreateRoomBody): Promise<CreateRoomResponse> => {
@@ -35,6 +36,7 @@ export const useCreateRoom = () => {
             localStorage.setItem("roomId", data.roomId);
             localStorage.setItem("playerName", data.playerName);
             setIsHost(true);
+            setPlayerName(data.playerName);
             router.push(`/game`);
             // You can perform additional actions here, like redirecting to the room page
         },
