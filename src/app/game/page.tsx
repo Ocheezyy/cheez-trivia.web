@@ -28,6 +28,7 @@ export default function GamePage() {
     const messageReceived = useGameStore(state => state.messageReceived);
     const storeStartGame = useGameStore(state => state.startGame);
     const updatePlayerScore = useGameStore(state => state.updatePlayerScore);
+    const playerJoined = useGameStore(state => state.joinRoom);
     const setCurrentQuestion = useGameStore(state => state.setCurrentQuestion);
     const pointsEarned = roomData.players.find((p) => p.name === playerName)?.score || 0
 
@@ -42,7 +43,7 @@ export default function GamePage() {
     }, [timeLeft, roomData]);
 
     const handleSendMessage = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
         const messageVal = newMessage.trim();
         if (!messageVal) return;
 
@@ -55,7 +56,10 @@ export default function GamePage() {
 
     useEffect(() => {
         if (socket) {
-            socket.on('receivedMessage', (message, playerName) => messageReceived({message, user: playerName}));
+            socket.on('receivedMessage', (message, playerName) => {
+                messageReceived({message, user: playerName})
+                console.log("receivedMessage", message, playerName);
+            });
         }
 
         return () => { if (socket) { socket.off('receivedMessage'); } };
@@ -76,6 +80,14 @@ export default function GamePage() {
 
         return () => { if (socket) { socket.off('gameStarted'); } };
     }, [socket, storeStartGame]);
+
+    useEffect(() => {
+        if (socket) {
+            socket.on('playerJoined', (data) => playerJoined(data));
+        }
+
+        return () => { if (socket) { socket.off('playerJoined'); } };
+    }, [socket, playerJoined]);
 
     const handleSubmitAnswer = () => {
         // Calculate points based on time left (faster answers get more points)

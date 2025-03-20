@@ -25,7 +25,8 @@ export default function HomePage() {
         setIsJoining(true);
         // Hit api route to check if room exists
         if (socket && roomId && name) {
-            socket.emit('joinRoom', roomId, name);
+            const nameTrimmed = name.trim();
+            socket.emit('joinRoom', roomId, nameTrimmed);
             toast("Joining room...");
         } else {
             toast("Unable to join, please refresh");
