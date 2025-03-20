@@ -1,8 +1,6 @@
 "use client"
 
-import React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +19,7 @@ export default function GamePage() {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [newMessage, setNewMessage] = useState<string>("");
     const [hasAnswered, setHasAnswered] = useState<boolean>(false);
+    const [allAnswered, setAllAnswered] = useState<boolean>(false);
 
     const roomData = useGameStore(state => state.roomData);
     const isHost = useGameStore(state => state.isHost);
@@ -59,7 +58,7 @@ export default function GamePage() {
         const lsRoomId = localStorage.getItem("roomId");
         const lsPlayerName = localStorage.getItem("playerName");
         if (!lsRoomId || !lsPlayerName) {
-            console.error(`Required local storage item not found. roomid: ${lsRoomId}, playerName: ${lsPlayerName}`);
+            console.error(`Required local storage item not found. roomId: ${lsRoomId}, playerName: ${lsPlayerName}`);
             return;
         }
 
@@ -70,6 +69,15 @@ export default function GamePage() {
             socket.emit("joinRoom", lsRoomId, lsPlayerName)
         }
     }, [socket, isHost]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on("allAnswered", () => {
+            setAllAnswered(true);
+        });
+
+        return () => { socket.off("allAnswered"); }
+    }, [socket, setAllAnswered]);
 
     useEffect(() => {
         if (!socket) return;
@@ -141,12 +149,6 @@ export default function GamePage() {
         return () => { socket.off('updatePlayerScore'); };
     }, [socket, updatePlayerScore]);
 
-    const handleNextQuestion = () => {
-        if (socket) {
-            socket.emit('nextQuestion', roomData.gameId, playerName);
-        }
-    }
-
     useEffect(() => {
         if (!socket) return;
 
@@ -185,7 +187,7 @@ export default function GamePage() {
                         setSelectedOption={setSelectedOption}
                         handleStartGame={handleStartGame}
                         handleSubmitAnswer={handleSubmitAnswer}
-                        handleNextQuestion={handleNextQuestion}
+                        allAnswered={allAnswered}
                     />
                 </div>
 

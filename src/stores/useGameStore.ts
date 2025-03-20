@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Message, Player, RoomData, TimeLimit } from "@/lib/types";
+import { Message, RoomData, TimeLimit } from "@/lib/types";
 
 type GameState = {
     roomData: RoomData;
@@ -7,7 +7,6 @@ type GameState = {
     isHost: boolean;
     setIsHost: (isHost: boolean) => void;
     joinRoom: (roomData: RoomData) => void;
-    addPlayer: (player: Player) => void;
     setPlayerName: (name: string) => void;
     updatePlayerScore: (playerName: string, score: number) => void;
     setCurrentQuestion: (questionNum: number) => void;
@@ -35,13 +34,6 @@ const useGameStore = create<GameState>((set) => ({
     setIsHost: (isHost: boolean) => set({ isHost}),
 
     joinRoom: (roomData) => set({ roomData }),
-
-    addPlayer: (player) => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            players: [...state.roomData.players, player],
-        },
-    })),
 
     setPlayerName: (name) => set({ playerName: name }),
 

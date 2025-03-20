@@ -47,8 +47,8 @@ type SocketResponseEvents = {
     gameEnd: () => void;
     reconnected: (data: RoomData) => void;
     reconnectFailed: (reason: string) => void;
+    allAnswered: () => void;
 };
-
 
 
 export type Question = {
@@ -64,6 +64,7 @@ export type Player = {
     id: string;
     name: string;
     score: number;
+    hasAnswered: boolean;
 }
 
 export type Message = {

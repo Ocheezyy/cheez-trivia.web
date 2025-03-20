@@ -23,11 +23,11 @@ type GameCardProps = {
     question?: Question;
     handleStartGame: () => void;
     handleSubmitAnswer: () => void;
-    handleNextQuestion: () => void;
     pointsEarned: number;
+    allAnswered: boolean;
 }
 
-export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, handleNextQuestion, pointsEarned }: GameCardProps) => {
+export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, pointsEarned, allAnswered }: GameCardProps) => {
     const currentQuestion = roomData.questions[roomData.currentQuestion - 1];
 
     if (!roomData.gameStarted) {
@@ -117,11 +117,6 @@ export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selecte
                             </p>
                         )}
                     </div>
-
-                    <Button className="w-full flex items-center justify-center gap-2" onClick={handleNextQuestion}>
-                        Next Question
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
                 </CardContent>
             </Card>
         )
