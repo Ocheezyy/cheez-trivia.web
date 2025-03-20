@@ -1,4 +1,4 @@
-import {ArrowRight, CheckCircle2, Clock, Play, XCircle} from "lucide-react";
+import {CheckCircle2, Clock, Play, XCircle} from "lucide-react";
 import {Progress} from "@/components/ui/progress";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -66,6 +66,14 @@ export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selecte
 
                     {!isHost && <div className="py-4 text-muted-foreground">Waiting for host to start the game...</div>}
                 </CardContent>
+            </Card>
+        )
+    }
+
+    if (allAnswered) {
+        return (
+            <Card className="shadow-lg">
+                All answered {/*TODO: Setup view here */}
             </Card>
         )
     }
