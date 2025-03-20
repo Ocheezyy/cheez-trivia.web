@@ -56,10 +56,18 @@ export default function GamePage() {
 
     useEffect(() => {
         if (!socket) return;
+        const lsRoomId = localStorage.getItem("roomId");
+        const lsPlayerName = localStorage.getItem("playerName");
+        if (!lsRoomId || !lsPlayerName) {
+            console.error(`Required local storage item not found. roomid: ${lsRoomId}, playerName: ${lsPlayerName}`);
+            return;
+        }
+
         if (isHost) {
-            socket.emit("hostJoin", localStorage.getItem("playerName")!, localStorage.getItem("roomId")!)
+            socket.emit("hostJoin", lsPlayerName, lsRoomId)
         } else {
-            socket.emit("joinRoom", localStorage.getItem("playerName")!, localStorage.getItem("roomId")!)
+
+            socket.emit("joinRoom", lsRoomId, lsPlayerName)
         }
     }, [socket, isHost]);
 
