@@ -6,6 +6,7 @@ import type React from "react";
 import {Badge} from "@/components/ui/badge";
 import {RoomData} from "@/lib/types";
 import {categories} from "@/lib/constants";
+import {Avatar, AvatarFallback} from "@/components/ui/avatar";
 
 type Question = {
     question: string;
@@ -15,6 +16,7 @@ type Question = {
 
 type GameCardProps = {
     roomData: RoomData;
+    currentPlayerName: string;
     questionAnswered: boolean;
     isHost: boolean;
     timeLeft: number;
@@ -27,8 +29,10 @@ type GameCardProps = {
     allAnswered: boolean;
 }
 
-export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, pointsEarned, allAnswered }: GameCardProps) => {
+export const GameCard = ({ roomData, currentPlayerName, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, pointsEarned, allAnswered }: GameCardProps) => {
     const currentQuestion = roomData.questions[roomData.currentQuestion - 1];
+
+    const sortedPlayersByRound = roomData.players.sort((a, b) => b.score - a.score);
 
     if (!roomData.gameStarted) {
         return (
@@ -73,7 +77,92 @@ export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selecte
     if (allAnswered) {
         return (
             <Card className="shadow-lg">
-                All answered {/*TODO: Setup view here */}
+                <CardHeader>
+                    <CardTitle className="text-xl">
+                        Question {roomData.currentQuestion} of {roomData.questions.length}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="text-center mb-4">
+                        <h3 className="text-2xl font-bold">Round Results</h3>
+                        <p className="text-muted-foreground">Everyone has answered. Here&#39;s how everyone did:</p>
+                    </div>
+
+                    <div className="bg-muted p-4 rounded-lg mb-4">
+                        <p className="font-medium mb-2">Question:</p>
+                        <p className="mb-4">{currentQuestion.question}</p>
+
+                        <p className="font-medium mb-2">Correct Answer:</p>
+                        <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                            {currentQuestion.correct_answer}
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        {sortedPlayersByRound.map((player) => {
+                            const isCurrentUser = player.name === currentPlayerName;
+                            return (
+                                <div
+                                    key={player.id}
+                                    className={`flex items-center justify-between p-4 rounded-lg border ${
+                                        isCurrentUser ? "border-primary bg-primary/5" : "border-muted-foreground/20"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{player.name}</span>
+                                                {isCurrentUser && (
+                                                    <Badge variant="outline" className="text-xs">
+                                                        You
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            {/*<div className="flex items-center gap-2 text-sm text-muted-foreground">*/}
+                                            {/*    <span>Answered in {player.answerTime.toFixed(1)}s</span>*/}
+                                            {/*    <span>•</span>*/}
+                                            {/*    <span>Total: {player.score + player.pointsEarned}</span>*/}
+                                            {/*</div>*/}
+                                        </div>
+                                    </div>
+
+                                    {/*<div className="flex items-center gap-4">*/}
+                                    {/*    {isCorrect ? (*/}
+                                    {/*        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">*/}
+                                    {/*            <CheckCircle2 className="h-5 w-5" />*/}
+                                    {/*            <span className="font-bold">+{player.pointsEarned}</span>*/}
+                                    {/*        </div>*/}
+                                    {/*    ) : (*/}
+                                    {/*        <div className="flex items-center gap-2 text-red-600 dark:text-red-400">*/}
+                                    {/*            <XCircle className="h-5 w-5" />*/}
+                                    {/*            <span className="font-bold">+0</span>*/}
+                                    {/*        </div>*/}
+                                    {/*    )}*/}
+                                    {/*</div>*/}
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {/*{isHost && (*/}
+                    {/*    <Button*/}
+                    {/*        className="w-full flex items-center justify-center gap-2 mt-4"*/}
+                    {/*        onClick={handleNextQuestion}*/}
+                    {/*    >*/}
+                    {/*        {currentQuestion < totalQuestions ? "Next Question" : "See Final Results"}*/}
+                    {/*        <ArrowRight className="h-4 w-4" />*/}
+                    {/*    </Button>*/}
+                    {/*)}*/}
+
+                    {/*{!isHost && (*/}
+                    {/*    <div className="text-center p-4 text-muted-foreground">*/}
+                    {/*        Waiting for host to continue to the next question...*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
+                </CardContent>
             </Card>
         )
     }

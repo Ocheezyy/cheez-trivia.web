@@ -182,6 +182,7 @@ export default function GamePage() {
                         questionAnswered={hasAnswered}
                         isHost={isHost}
                         timeLeft={timeLeft}
+                        currentPlayerName={playerName}
                         pointsEarned={pointsEarned}
                         selectedOption={selectedOption}
                         setSelectedOption={setSelectedOption}
