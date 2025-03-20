@@ -142,7 +142,7 @@ export const GameCard = ({ roomData, isHost, questionAnswered, timeLeft, selecte
             {/* Question card */}
             <Card className="shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-xl">Question 3 of 10</CardTitle>
+                    <CardTitle className="text-xl">Question {roomData.currentQuestion} of {roomData.questions.length}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <h3 className="text-2xl font-bold mb-6">{currentQuestion.question}</h3>
