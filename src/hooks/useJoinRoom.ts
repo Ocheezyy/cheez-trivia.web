@@ -8,7 +8,7 @@ export const useJoinRoom = () => {
 
     return useMutation({
         mutationFn: async ({ playerName, roomId }: JoinRoomBody): Promise<JoinRoomBody> => {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_API_URL}/api/createRoom`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_API_URL}/api/joinRoom`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
