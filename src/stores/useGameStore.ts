@@ -5,6 +5,7 @@ type GameState = {
     roomData: RoomData;
     playerName: string;
     isHost: boolean;
+    setIsHost: (isHost: boolean) => void;
     joinRoom: (roomData: RoomData) => void;
     addPlayer: (player: Player) => void;
     setPlayerName: (name: string) => void;
@@ -30,6 +31,8 @@ const useGameStore = create<GameState>((set) => ({
     },
     playerName: '',
     isHost: false,
+
+    setIsHost: (isHost: boolean) => set({ isHost}),
 
     joinRoom: (roomData) => set({ roomData }),
 

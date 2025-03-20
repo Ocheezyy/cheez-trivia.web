@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react";
+import React from "react";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,12 @@ export default function GamePage() {
     const roomData = useGameStore(state => state.roomData);
     const isHost = useGameStore(state => state.isHost);
     const playerName = useGameStore(state => state.playerName);
+    const storeJoinRoom = useGameStore(state => state.joinRoom);
     const messageReceived = useGameStore(state => state.messageReceived);
     const storeStartGame = useGameStore(state => state.startGame);
     const updatePlayerScore = useGameStore(state => state.updatePlayerScore);
-    const playerJoined = useGameStore(state => state.joinRoom);
     const setCurrentQuestion = useGameStore(state => state.setCurrentQuestion);
-    const pointsEarned = roomData.players.find((p) => p.name === playerName)?.score || 0
+    const pointsEarned = roomData.players.find((p) => p.name === playerName)?.score || 0;
 
     // console.log("gamePage", roomData);
 
@@ -55,15 +55,45 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (socket) {
-            socket.on('receivedMessage', (message, playerName) => {
-                messageReceived({message, user: playerName});
-                setNewMessage("");
-                console.log("receivedMessage", message, playerName);
-            });
+        if (!socket) return;
+        if (isHost) {
+            socket.emit("hostJoin", localStorage.getItem("playerName")!, localStorage.getItem("roomId")!)
+        } else {
+            socket.emit("joinRoom", localStorage.getItem("playerName")!, localStorage.getItem("roomId")!)
         }
+    }, [socket, isHost]);
 
-        return () => { if (socket) { socket.off('receivedMessage'); } };
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("hostJoined", (data) => {
+            storeJoinRoom(data);
+            console.log("hostJoined", data)
+        });
+
+        return () => { socket.off("hostJoined"); }
+    }, [socket, storeJoinRoom]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on("playerJoined", (data) => {
+            storeJoinRoom(data);
+            console.log("playerJoined", data);
+        });
+
+        return () => { socket.off("playerJoined"); }
+    }, [socket, storeJoinRoom]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.on('receivedMessage', (message, playerName) => {
+            messageReceived({message, user: playerName});
+            setNewMessage("");
+            console.log("receivedMessage", message, playerName);
+        });
+
+        return () => { socket.off("receivedMessage"); }
     }, [socket, messageReceived]);
 
     const handleStartGame = () => {
@@ -75,23 +105,12 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (socket) {
-            socket.on('gameStarted', () => storeStartGame());
-        }
+        if (!socket) return;
+        socket.on('gameStarted', () => storeStartGame());
 
-        return () => { if (socket) { socket.off('gameStarted'); } };
+        return () => { socket.off('gameStarted'); };
     }, [socket, storeStartGame]);
 
-    useEffect(() => {
-        if (socket) {
-            socket.on('playerJoined', (data) => {
-                playerJoined(data);
-                console.log("playerJoined", data.players);
-            });
-        }
-
-        return () => { if (socket) { socket.off('playerJoined'); } };
-    }, [socket, playerJoined]);
 
     const handleSubmitAnswer = () => {
         // Calculate points based on time left (faster answers get more points)
@@ -108,11 +127,10 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (socket) {
-            socket.on('updatePlayerScore', (playerName, score) => updatePlayerScore(playerName, score));
-        }
+        if (!socket) return;
+        socket.on('updatePlayerScore', (playerName, score) => updatePlayerScore(playerName, score));
 
-        return () => { if (socket) { socket.off('updatePlayerScore'); } };
+        return () => { socket.off('updatePlayerScore'); };
     }, [socket, updatePlayerScore]);
 
     const handleNextQuestion = () => {
@@ -122,24 +140,24 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (socket) {
-            socket.on('nextQuestion', (currentQuestionNum) => setCurrentQuestion(currentQuestionNum));
-            
-            setSelectedOption(null);
-            setHasAnswered(false);
-            setTimeLeft(Number(roomData.timeLimit));
-        }
+        if (!socket) return;
 
-        return () => { if (socket) { socket.off('nextQuestion'); } };
+        socket.on('nextQuestion', (currentQuestionNum) => setCurrentQuestion(currentQuestionNum));
+
+        setSelectedOption(null);
+        setHasAnswered(false);
+        setTimeLeft(Number(roomData.timeLimit));
+
+        return () => { socket.off('nextQuestion'); };
     }, [socket, setCurrentQuestion, roomData.timeLimit]);
 
     useEffect(() => {
-        if (socket) {
-            socket.on('gameEnd', () => {
-                // do game end stuff here
-            });
-        }
-        return () => { if (socket) { socket.off('gameEnd'); } };
+        if (!socket) return;
+
+        socket.on('gameEnd', () => {
+            // do game end stuff here
+        });
+        return () => { socket.off('gameEnd'); };
     }, [socket]);
 
 

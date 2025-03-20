@@ -2,9 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import type { CreateRoomBody, CreateRoomResponse } from "@/lib/types";
 import { toast } from "sonner";
+import useGameStore from "@/stores/useGameStore";
 
 export const useCreateRoom = () => {
     const router = useRouter();
+    const setIsHost = useGameStore(state => state.setIsHost)
 
     return useMutation({
         mutationFn: async ({ playerName, numQuestions, categoryId, difficulty, timeLimit }: CreateRoomBody): Promise<CreateRoomResponse> => {
@@ -32,7 +34,7 @@ export const useCreateRoom = () => {
             console.log("Room created successfully. Room ID:", data.roomId);
             localStorage.setItem("roomId", data.roomId);
             localStorage.setItem("playerName", data.playerName);
-            localStorage.setItem("isHost", "true");
+            setIsHost(true);
             router.push(`/game`);
             // You can perform additional actions here, like redirecting to the room page
         },
