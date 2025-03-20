@@ -10,7 +10,7 @@ export const useCreateRoom = () => {
 
     return useMutation({
         mutationFn: async ({ playerName, numQuestions, categoryId, difficulty, timeLimit }: CreateRoomBody): Promise<CreateRoomResponse> => {
-            const response = await fetch("/api/createRoom", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SOCKET_API_URL}/api/createRoom`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
