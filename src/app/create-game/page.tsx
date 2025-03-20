@@ -1,9 +1,7 @@
 "use client"
 
-import { useEffect } from "react";
-import type { Difficulty, RoomData, TimeLimit } from "@/lib/types";
+import type { Difficulty, TimeLimit } from "@/lib/types";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,54 +12,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useSocket } from "@/hooks/useSocket";
-import { toast } from "sonner";
-import useGameStore from "@/stores/useGameStore";
 import { categories } from "@/lib/constants";
+import { useCreateRoom } from "@/hooks/useCreateRoom";
+import Spinner from "@/components/spinner";
 
 
 export default function CreateGamePage() {
-    const socket = useSocket();
-    const joinRoom = useGameStore((state) => state.joinRoom);
-    const router = useRouter();
+    const { mutate: createRoom, isPending } = useCreateRoom();
     const [name, setName] = useState<string>("");
     const [numQuestions, setNumQuestions] = useState(10);
     const [categoryId, setCategoryId] = useState<string>("");
     const [difficulty, setDifficulty] = useState<Difficulty>("mixed");
     const [timeLimit, setTimeLimit] = useState<TimeLimit>("30");
 
-
-    const createRoom = () => {
-        if (!name) {
-            toast.error("Please enter a name");
-            return;
-        }
-        if (!categoryId) {
-            toast.error("Please enter a category");
-            return;
-        }
-
-        if (socket) {
-            socket.emit('createRoom', name, numQuestions, Number(categoryId), difficulty, timeLimit);
-            toast("Creating room...");
-        } else {
-            toast("Failed to create a room");
-        }
+    const handleCreateRoom = () => {
+        createRoom({ playerName: name, numQuestions, categoryId: Number(categoryId), difficulty, timeLimit});
     }
-
-    useEffect(() => {
-        if (socket) {
-            socket.on('roomCreated', (data: RoomData) => {
-                console.log(`Room created:`, data);
-                joinRoom(data);
-                router.push("/game");
-            });
-        }
-
-        return () => {
-            if (socket) { socket.off('roomCreated'); }
-        };
-    }, [socket, joinRoom, router]);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -143,8 +109,8 @@ export default function CreateGamePage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" onClick={createRoom}>
-                        Start Game
+                    <Button className="w-full" onClick={handleCreateRoom} disabled={isPending}>
+                        Start Game {isPending ? <Spinner /> : null}
                     </Button>
                 </CardFooter>
             </Card>

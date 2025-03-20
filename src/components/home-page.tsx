@@ -1,65 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Scroll } from "lucide-react";
-import { useSocket } from "@/hooks/useSocket";
-import { RoomData } from "@/lib/types";
-import { toast } from "sonner";
-import useGameStore from "@/stores/useGameStore";
-import { useRouter } from "next/navigation";
 import Spinner from "@/components/spinner";
+import { useJoinRoom } from "@/hooks/useJoinRoom";
 
 export default function HomePage() {
-    const socket = useSocket();
-    const router = useRouter();
+    const { mutate: joinRoom, isPending } = useJoinRoom();
     const [roomId, setRoomId] = useState<string>("");
     const [name, setName] = useState<string>("");
-    const [isJoining, setIsJoining] = useState<boolean>(false);
-    const storeJoinRoom = useGameStore(state => state.joinRoom);
 
-    const joinRoom = () => {
-        setIsJoining(true);
-        // Hit api route to check if room exists
-        if (socket && roomId && name) {
-            const nameTrimmed = name.trim();
-            socket.emit('joinRoom', roomId, nameTrimmed);
-            toast("Joining room...");
-        } else {
-            toast("Unable to join, please refresh");
-            setIsJoining(false);
-        }
+    const handleJoinRoom = () => {
+        joinRoom({ roomId, playerName: name });
     }
-
-    useEffect(() => {
-        if (socket) {
-            socket.on('playerJoined', (data: RoomData) => {
-                storeJoinRoom(data);
-                console.log(`Joined room:`, data);
-                router.push("/game");
-            });
-        }
-
-        return () => {
-            if (socket) { socket.off('playerJoined'); }
-        };
-    }, [socket, storeJoinRoom, router]);
-
-    useEffect(() => {
-        if (socket) {
-            socket.on('joinFailed', (reason: string) => {
-                toast.error("Failed to join room: " + reason);
-                setIsJoining(false);
-            });
-        }
-
-        return () => {
-            if (socket) { socket.off('joinFailed'); }
-        };
-    }, [socket]);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -86,8 +43,8 @@ export default function HomePage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" onClick={joinRoom} disabled={isJoining}>
-                            Join Game {isJoining ? <Spinner /> : null}
+                        <Button className="w-full" onClick={handleJoinRoom} disabled={isPending}>
+                            Join Game {isPending ? <Spinner /> : null}
                         </Button>
                     </CardFooter>
                 </Card>

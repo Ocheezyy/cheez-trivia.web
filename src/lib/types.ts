@@ -6,18 +6,38 @@ export type JoinFailedReason = "Room not found" | "Name not available";
 // export type SocketSendEvents = "createRoom" | "joinRoom" | "submitAnswer" | "sendMessage" | "nextQuestion" | "startGame";
 // export type SocketResponseEvents = "roomCreated" | "playerJoined" | "updatePlayerScore" | "joinFailed" | "receivedMessage" | "nextQuestion" | "gameStarted";
 
+export type CreateRoomBody = {
+    playerName: string;
+    numQuestions: number;
+    categoryId: number;
+    difficulty: Difficulty;
+    timeLimit: TimeLimit;
+};
+
+export type CreateRoomResponse = {
+    roomId: string;
+    playerName: string;
+}
+
+export type JoinRoomBody = {
+    playerName: string;
+    roomId: string;
+};
 
 type SocketSendEvents = {
-    createRoom: (playerName: string, numQuestions: number, categoryId: number, difficulty: Difficulty, timeLimit: TimeLimit) => void;
+    hostJoin: (playerName: string, roomId: string) => void;
     joinRoom: (roomId: string, playerName: string) => void;
     submitAnswer: (roomId: string, playerName: string, points: number) => void;
     sendMessage: (roomId: string, message: string, playerName: string) => void;
     nextQuestion: (roomId: string, playerName: string) => void;
     startGame: (roomId: string) => void;
-}
+    disconnect: () => void;
+    reconnect: (roomId: string, playerName: string) => void;
+};
 
 type SocketResponseEvents = {
-    roomCreated: (data: RoomData) => void;
+    hostJoinFailed: (roomId: string) => void;
+    hostJoined: (data: RoomData) => void;
     playerJoined: (data: RoomData) => void;
     updatePlayerScore: (playerName: string, score: number) => void;
     joinFailed: (reason: JoinFailedReason) => void;
@@ -25,7 +45,10 @@ type SocketResponseEvents = {
     nextQuestion: (currentQuestion: number) => void;
     gameStarted: () => void;
     gameEnd: () => void;
-}
+    reconnected: (data: RoomData) => void;
+    reconnectFailed: (reason: string) => void;
+};
+
 
 
 export type Question = {
