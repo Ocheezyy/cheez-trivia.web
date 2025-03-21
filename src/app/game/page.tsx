@@ -168,7 +168,10 @@ export default function GamePage() {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on("updatePlayerScore", (playerName, score) => updatePlayerScore(playerName, score));
+    socket.on("updatePlayerScore", (playerName, score) => {
+      updatePlayerScore(playerName, score);
+      console.log("updatePlayerScore", playerName, score);
+    });
 
     return () => {
       socket.off("updatePlayerScore");
@@ -179,6 +182,7 @@ export default function GamePage() {
     if (!socket) return;
 
     socket.on("nextQuestion", (currentQuestionNum) => {
+      console.log("nextQuestion called: " + currentQuestionNum);
       setCurrentQuestion(currentQuestionNum);
       setSelectedOption(null);
       setHasAnswered(false);

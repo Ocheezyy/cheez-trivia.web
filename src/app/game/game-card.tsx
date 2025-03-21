@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { RoomData } from "@/lib/types";
 import { categories } from "@/lib/constants";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { decode as heDecode } from "he";
 
 type Question = {
   question: string;
@@ -106,11 +107,11 @@ export const GameCard = ({
 
           <div className="bg-muted p-4 rounded-lg mb-4">
             <p className="font-medium mb-2">Question:</p>
-            <p className="mb-4">{currentQuestion.question}</p>
+            <p className="mb-4">{heDecode(currentQuestion.question)}</p>
 
             <p className="font-medium mb-2">Correct Answer:</p>
             <p className="text-lg font-bold text-green-600 dark:text-green-400">
-              {currentQuestion.correct_answer}
+              {heDecode(currentQuestion.correct_answer)}
             </p>
           </div>
 
@@ -213,17 +214,19 @@ export const GameCard = ({
 
           <div className="bg-muted p-4 rounded-lg">
             <p className="font-medium mb-2">Question:</p>
-            <p className="mb-4">{currentQuestion.question}</p>
+            <p className="mb-4">{heDecode(currentQuestion.question)}</p>
 
             <p className="font-medium mb-2">Correct Answer:</p>
             <p className="text-lg font-bold text-green-600 dark:text-green-400">
-              {currentQuestion?.correct_answer}
+              {heDecode(currentQuestion?.correct_answer)}
             </p>
 
             {selectedOption !== currentQuestion?.correct_answer && (
               <>
                 <p className="font-medium mt-4 mb-2">Your Answer:</p>
-                <p className="text-lg font-bold text-red-600 dark:text-red-400">{selectedOption}</p>
+                <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {heDecode(selectedOption || "")}
+                </p>
               </>
             )}
           </div>
@@ -259,18 +262,18 @@ export const GameCard = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <h3 className="text-2xl font-bold mb-6">{currentQuestion.question}</h3>
+          <h3 className="text-2xl font-bold mb-6">{heDecode(currentQuestion.question)}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentQuestion.all_answers.map((answer, index) => (
               <Button
-                key={index}
+                key={`answer-${index}`}
                 variant={selectedOption === answer ? "default" : "outline"}
                 className={`h-auto py-6 text-lg justify-start ${
                   selectedOption === answer ? "border-primary" : ""
                 }`}
                 onClick={() => setSelectedOption(answer)}
               >
-                <span className="mr-2">{String.fromCharCode(65 + index)}.</span> {answer}
+                <span className="mr-2">{String.fromCharCode(65 + index)}.</span> {heDecode(answer)}
               </Button>
             ))}
           </div>
