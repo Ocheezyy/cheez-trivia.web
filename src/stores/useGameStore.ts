@@ -1,83 +1,88 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import { Message, RoomData, TimeLimit } from "@/lib/types";
 
 type GameState = {
-    roomData: RoomData;
-    playerName: string;
-    isHost: boolean;
-    setIsHost: (isHost: boolean) => void;
-    joinRoom: (roomData: RoomData) => void;
-    setPlayerName: (name: string) => void;
-    updatePlayerScore: (playerName: string, score: number) => void;
-    setCurrentQuestion: (questionNum: number) => void;
-    startGame: () => void;
-    resetGame: () => void;
-    messageReceived: (message: Message) => void;
+  roomData: RoomData;
+  playerName: string;
+  isHost: boolean;
+  setIsHost: (isHost: boolean) => void;
+  joinRoom: (roomData: RoomData) => void;
+  setPlayerName: (name: string) => void;
+  updatePlayerScore: (playerName: string, score: number) => void;
+  setCurrentQuestion: (questionNum: number) => void;
+  startGame: () => void;
+  resetGame: () => void;
+  messageReceived: (message: Message) => void;
 };
 
 const useGameStore = create<GameState>((set) => ({
-    roomData: {
-        gameId: '',
-        players: [],
-        host: '',
-        questions: [],
-        messages: [],
-        currentQuestion: 1,
+  roomData: {
+    gameId: "",
+    players: [],
+    host: "",
+    questions: [],
+    messages: [],
+    currentQuestion: 1,
+    gameStarted: false,
+    category: 9,
+    difficulty: "mixed",
+    timeLimit: "30" as TimeLimit,
+  },
+  playerName: "",
+  isHost: false,
+
+  setIsHost: (isHost: boolean) => set({ isHost }),
+
+  joinRoom: (roomData) => set({ roomData }),
+
+  setPlayerName: (name) => set({ playerName: name }),
+
+  updatePlayerScore: (playerName, score) =>
+    set((state) => ({
+      roomData: {
+        ...state.roomData,
+        players: state.roomData.players.map((player) =>
+          player.name === playerName ? { ...player, score } : player
+        ),
+      },
+    })),
+
+  setCurrentQuestion: (questionNum) =>
+    set((state) => ({
+      roomData: {
+        ...state.roomData,
+        currentQuestion: questionNum,
+      },
+    })),
+
+  startGame: () =>
+    set((state) => ({
+      roomData: {
+        ...state.roomData,
+        messages: [...state.roomData.messages, { user: "System", message: "Game has started!" }],
+        gameStarted: true,
+      },
+    })),
+
+  resetGame: () =>
+    set((state) => ({
+      roomData: {
+        ...state.roomData,
         gameStarted: false,
-        category: 9,
-        difficulty: 'mixed',
-        timeLimit: "30" as TimeLimit,
-    },
-    playerName: '',
-    isHost: false,
-
-    setIsHost: (isHost: boolean) => set({ isHost}),
-
-    joinRoom: (roomData) => set({ roomData }),
-
-    setPlayerName: (name) => set({ playerName: name }),
-
-    updatePlayerScore: (playerName, score) => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            players: state.roomData.players.map((player) =>
-                player.name === playerName ? { ...player, score } : player
-            ),
-        },
+        currentQuestion: 0,
+        players: state.roomData.players.map((player) => ({
+          ...player,
+          score: 0,
+        })),
+      },
     })),
 
-    setCurrentQuestion: (questionNum) => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            currentQuestion: questionNum,
-        },
-    })),
-
-    startGame: () => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            messages: [ ...state.roomData.messages, { user: "System", message: "Game has started!" }],
-            gameStarted: true,
-        },
-    })),
-
-    resetGame: () => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            gameStarted: false,
-            currentQuestion: 0,
-            players: state.roomData.players.map((player) => ({
-                ...player,
-                score: 0,
-            })),
-        },
-    })),
-
-    messageReceived: (message) => set((state) => ({
-        roomData: {
-            ...state.roomData,
-            messages: [...state.roomData.messages, message],
-        },
+  messageReceived: (message) =>
+    set((state) => ({
+      roomData: {
+        ...state.roomData,
+        messages: [...state.roomData.messages, message],
+      },
     })),
 }));
 
