@@ -20,6 +20,7 @@ export default function GamePage() {
     const [newMessage, setNewMessage] = useState<string>("");
     const [hasAnswered, setHasAnswered] = useState<boolean>(false);
     const [allAnswered, setAllAnswered] = useState<boolean>(false);
+    const [nextQuestionCountdown, setNextQuestionCountdown] = useState(10);
 
     const roomData = useGameStore(state => state.roomData);
     const isHost = useGameStore(state => state.isHost);
@@ -71,9 +72,22 @@ export default function GamePage() {
     }, [socket, isHost]);
 
     useEffect(() => {
+        if (allAnswered && nextQuestionCountdown > 0) {
+            const timer = setTimeout(() => {
+                setNextQuestionCountdown((prev) => prev - 1)
+            }, 1000)
+
+            return () => clearTimeout(timer)
+        } else if (allAnswered && nextQuestionCountdown === 0) {
+            // Maybe show something here
+        }
+    }, [allAnswered, nextQuestionCountdown])
+
+    useEffect(() => {
         if (!socket) return;
         socket.on("allAnswered", () => {
             setAllAnswered(true);
+            setNextQuestionCountdown(10);
         });
 
         return () => { socket.off("allAnswered"); }
@@ -152,11 +166,13 @@ export default function GamePage() {
     useEffect(() => {
         if (!socket) return;
 
-        socket.on('nextQuestion', (currentQuestionNum) => setCurrentQuestion(currentQuestionNum));
-
-        setSelectedOption(null);
-        setHasAnswered(false);
-        setTimeLeft(Number(roomData.timeLimit));
+        socket.on('nextQuestion', (currentQuestionNum) => {
+            setCurrentQuestion(currentQuestionNum);
+            setSelectedOption(null);
+            setHasAnswered(false);
+            setAllAnswered(false);
+            setTimeLeft(Number(roomData.timeLimit));
+        });
 
         return () => { socket.off('nextQuestion'); };
     }, [socket, setCurrentQuestion, roomData.timeLimit]);
@@ -189,6 +205,7 @@ export default function GamePage() {
                         handleStartGame={handleStartGame}
                         handleSubmitAnswer={handleSubmitAnswer}
                         allAnswered={allAnswered}
+                        nextQuestionCountdown={nextQuestionCountdown}
                     />
                 </div>
 

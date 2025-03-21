@@ -27,9 +27,10 @@ type GameCardProps = {
     handleSubmitAnswer: () => void;
     pointsEarned: number;
     allAnswered: boolean;
+    nextQuestionCountdown: number;
 }
 
-export const GameCard = ({ roomData, currentPlayerName, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, pointsEarned, allAnswered }: GameCardProps) => {
+export const GameCard = ({ roomData, currentPlayerName, isHost, questionAnswered, timeLeft, selectedOption, setSelectedOption, handleStartGame, pointsEarned, allAnswered, nextQuestionCountdown, handleSubmitAnswer }: GameCardProps) => {
     const currentQuestion = roomData.questions[roomData.currentQuestion - 1];
 
     const sortedPlayersByRound = roomData.players.sort((a, b) => b.score - a.score);
@@ -162,6 +163,13 @@ export const GameCard = ({ roomData, currentPlayerName, isHost, questionAnswered
                     {/*        Waiting for host to continue to the next question...*/}
                     {/*    </div>*/}
                     {/*)}*/}
+                    <div className="mt-6 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Next question in:</span>
+                            <span className="font-bold">{nextQuestionCountdown}s</span>
+                        </div>
+                        <Progress value={(nextQuestionCountdown / 10) * 100} className="h-2" />
+                    </div>
                 </CardContent>
             </Card>
         )
@@ -251,7 +259,7 @@ export const GameCard = ({ roomData, currentPlayerName, isHost, questionAnswered
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button className="w-full" disabled={!selectedOption}>
+                    <Button className="w-full" disabled={!selectedOption} onClick={handleSubmitAnswer}>
                         Submit Answer
                     </Button>
                 </CardFooter>
