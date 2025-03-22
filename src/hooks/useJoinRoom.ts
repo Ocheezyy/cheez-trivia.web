@@ -22,7 +22,7 @@ export const useJoinRoom = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create room");
+        throw new Error(await response.text());
       }
 
       return await response.json();
