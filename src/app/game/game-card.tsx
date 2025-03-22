@@ -8,6 +8,7 @@ import { RoomData } from "@/lib/types";
 import { categories } from "@/lib/constants";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { decode as heDecode } from "he";
+import { capitalizeFirstLetter } from "@/lib/utils";
 
 type Question = {
   question: string;
@@ -73,7 +74,7 @@ export const GameCard = ({
               <Badge variant="outline">
                 {categories.find((category) => category.id === Number(roomData.category))?.name}
               </Badge>
-              <Badge variant="outline">{roomData.difficulty} Difficulty</Badge>
+              <Badge variant="outline">{capitalizeFirstLetter(roomData.difficulty)} Difficulty</Badge>
               <Badge variant="outline">{roomData.timeLimit}s per Question</Badge>
             </div>
           </div>
