@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { immer } from "zustand/middleware/immer"; // Directly import `immer` from the middleware
 import { Message, RoomData, TimeLimit } from "@/lib/types";
 
 type GameState = {
@@ -15,80 +16,81 @@ type GameState = {
   messageReceived: (message: Message) => void;
 };
 
-const useGameStore = create<GameState>((set) => ({
-  roomData: {
-    gameId: "",
-    players: [],
-    host: "",
-    questions: [],
-    messages: [],
-    currentQuestion: 1,
-    gameStarted: false,
-    category: 9,
-    difficulty: "mixed",
-    timeLimit: "30" as TimeLimit,
-  },
-  playerName: "",
-  isHost: false,
+const useGameStore = create<GameState>()(
+  immer((set) => ({
+    roomData: {
+      gameId: "",
+      players: [],
+      host: "",
+      questions: [],
+      messages: [],
+      currentQuestion: 1,
+      gameStarted: false,
+      category: 9,
+      difficulty: "mixed",
+      timeLimit: "30" as TimeLimit,
+    },
+    playerName: "",
+    isHost: false,
 
-  setIsHost: (isHost: boolean) => set({ isHost }),
+    setIsHost: (isHost) =>
+      set((state) => {
+        state.isHost = isHost;
+      }),
 
-  joinRoom: (roomData) => set({ roomData }),
+    joinRoom: (roomData) =>
+      set((state) => {
+        state.roomData = roomData;
+      }),
 
-  setPlayerName: (name) => set({ playerName: name }),
+    setPlayerName: (name) =>
+      set((state) => {
+        state.playerName = name;
+      }),
 
-  updatePlayerScore: (playerName, newScore) =>
-    set((state) => {
-      const updatedPlayers = state.roomData.players.map((player) =>
-        player.name === playerName ? { ...player, score: newScore } : player
-      );
+    updatePlayerScore: (playerName, newScore) =>
+      set((state) => {
+        const player = state.roomData.players.find((p) => {
+          console.log(`storePlayerName: ${p.name}, playerName: ${playerName}`);
+          console.log(playerName);
+          return p.name === playerName;
+        });
+        if (player) {
+          player.score = newScore;
+          console.log("mutated player score");
+        } else {
+          console.log("Failed to find player");
+        }
+      }),
 
-      // Ensure that we return a new object reference for the entire roomData object
-      return {
-        roomData: {
-          ...state.roomData,
-          players: updatedPlayers, // Updated players array reference
-        },
-      };
-    }),
+    setCurrentQuestion: (questionNum) =>
+      set((state) => {
+        state.roomData.currentQuestion = questionNum;
+      }),
 
-  setCurrentQuestion: (questionNum) =>
-    set((state) => ({
-      roomData: {
-        ...state.roomData,
-        currentQuestion: questionNum,
-      },
-    })),
+    startGame: () =>
+      set((state) => {
+        state.roomData.gameStarted = true;
+        state.roomData.messages.push({
+          user: "System",
+          message: "Game has started!",
+        });
+      }),
 
-  startGame: () =>
-    set((state) => ({
-      roomData: {
-        ...state.roomData,
-        messages: [...state.roomData.messages, { user: "System", message: "Game has started!" }],
-        gameStarted: true,
-      },
-    })),
+    resetGame: () =>
+      set((state) => {
+        state.roomData.gameStarted = false;
+        state.roomData.currentQuestion = 0;
+        state.roomData.players.forEach((player) => {
+          player.score = 0;
+        });
+      }),
 
-  resetGame: () =>
-    set((state) => ({
-      roomData: {
-        ...state.roomData,
-        gameStarted: false,
-        currentQuestion: 0,
-        players: state.roomData.players.map((player) => ({
-          ...player,
-          score: 0,
-        })),
-      },
-    })),
-
-  messageReceived: (message) =>
-    set((state) => ({
-      roomData: {
-        ...state.roomData,
-        messages: [...state.roomData.messages, message],
-      },
-    })),
-}));
+    messageReceived: (message) =>
+      set((state) => {
+        state.roomData.messages.push(message);
+      }),
+  }))
+);
 
 export default useGameStore;

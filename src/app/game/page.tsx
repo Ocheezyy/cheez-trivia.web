@@ -32,6 +32,7 @@ export default function GamePage() {
   const updatePlayerScore = useGameStore((state) => state.updatePlayerScore);
   const setCurrentQuestion = useGameStore((state) => state.setCurrentQuestion);
   const pointsEarned = players.find((p) => p.name === playerName)?.score || 0;
+  const sortedPlayersByScore = [...players].sort((a, b) => b.score - a.score);
 
   // console.log("gamePage", roomData);
 
@@ -172,7 +173,6 @@ export default function GamePage() {
     socket.on("updatePlayerScore", (playerName, score) => {
       updatePlayerScore(playerName, score);
       console.log("updatePlayerScore", playerName, score);
-      console.log("Updated store:", useGameStore.getState().roomData.players);
     });
 
     return () => {
@@ -226,6 +226,7 @@ export default function GamePage() {
             handleSubmitAnswer={handleSubmitAnswer}
             allAnswered={allAnswered}
             nextQuestionCountdown={nextQuestionCountdown}
+            sortedPlayersByScore={sortedPlayersByScore}
           />
         </div>
 
@@ -252,7 +253,7 @@ export default function GamePage() {
                 <CardContent>
                   <ScrollArea className="h-[400px]">
                     <div className="space-y-4">
-                      {players.map((player) => {
+                      {sortedPlayersByScore.map((player) => {
                         const isCurrentUser = player.name === playerName;
                         return (
                           <div

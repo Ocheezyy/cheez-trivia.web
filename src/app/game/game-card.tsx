@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import type React from "react";
 import { Badge } from "@/components/ui/badge";
-import { RoomData } from "@/lib/types";
+import { Player, RoomData } from "@/lib/types";
 import { categories } from "@/lib/constants";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { decode as heDecode } from "he";
@@ -30,6 +30,7 @@ type GameCardProps = {
   pointsEarned: number;
   allAnswered: boolean;
   nextQuestionCountdown: number;
+  sortedPlayersByScore: Player[];
 };
 
 export const GameCard = ({
@@ -45,10 +46,9 @@ export const GameCard = ({
   allAnswered,
   nextQuestionCountdown,
   handleSubmitAnswer,
+  sortedPlayersByScore,
 }: GameCardProps) => {
   const currentQuestion = roomData.questions[roomData.currentQuestion - 1];
-
-  const sortedPlayersByRound = roomData.players.sort((a, b) => b.score - a.score);
 
   if (!roomData.gameStarted) {
     return (
@@ -117,7 +117,7 @@ export const GameCard = ({
           </div>
 
           <div className="space-y-3">
-            {sortedPlayersByRound.map((player) => {
+            {sortedPlayersByScore.map((player) => {
               const isCurrentUser = player.name === currentPlayerName;
               return (
                 <div
