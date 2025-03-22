@@ -37,7 +37,7 @@ export const useJoinRoom = () => {
     },
     onError: (error) => {
       console.error("Failed to join room:", error);
-      toast.error("Failed to join room");
+      toast.error("Failed to join room: " + error.message);
     },
   });
 };

@@ -270,7 +270,7 @@ export default function GamePage() {
                                     You
                                   </span>
                                 )}
-                                {isHost && (
+                                {player.name === roomData.host && (
                                   <span className="text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100 px-2 py-0.5 rounded">
                                     Host
                                   </span>
