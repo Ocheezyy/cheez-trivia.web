@@ -172,6 +172,7 @@ export default function GamePage() {
     socket.on("updatePlayerScore", (playerName, score) => {
       updatePlayerScore(playerName, score);
       console.log("updatePlayerScore", playerName, score);
+      console.log("Updated store:", useGameStore.getState().roomData.players);
     });
 
     return () => {
