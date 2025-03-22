@@ -8,7 +8,7 @@ type GameState = {
   setIsHost: (isHost: boolean) => void;
   joinRoom: (roomData: RoomData) => void;
   setPlayerName: (name: string) => void;
-  updatePlayerScore: (playerName: string, score: number) => void;
+  updatePlayerScore: (playerName: string, newScore: number) => void;
   setCurrentQuestion: (questionNum: number) => void;
   startGame: () => void;
   resetGame: () => void;
@@ -37,15 +37,20 @@ const useGameStore = create<GameState>((set) => ({
 
   setPlayerName: (name) => set({ playerName: name }),
 
-  updatePlayerScore: (playerName, score) =>
-    set((state) => ({
-      roomData: {
-        ...state.roomData,
-        players: state.roomData.players.map((player) =>
-          player.name === playerName ? { ...player, score } : player
-        ),
-      },
-    })),
+  updatePlayerScore: (playerName, newScore) =>
+    set((state) => {
+      const updatedPlayers = state.roomData.players.map((player) =>
+        player.name === playerName ? { ...player, score: newScore } : player
+      );
+
+      // Ensure that we return a new object reference for the entire roomData object
+      return {
+        roomData: {
+          ...state.roomData,
+          players: updatedPlayers, // Updated players array reference
+        },
+      };
+    }),
 
   setCurrentQuestion: (questionNum) =>
     set((state) => ({
