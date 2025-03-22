@@ -23,6 +23,7 @@ export default function GamePage() {
   const [nextQuestionCountdown, setNextQuestionCountdown] = useState(10);
 
   const roomData = useGameStore((state) => state.roomData);
+  const players = useGameStore((state) => state.roomData.players);
   const isHost = useGameStore((state) => state.isHost);
   const playerName = useGameStore((state) => state.playerName);
   const storeJoinRoom = useGameStore((state) => state.joinRoom);
@@ -30,7 +31,7 @@ export default function GamePage() {
   const storeStartGame = useGameStore((state) => state.startGame);
   const updatePlayerScore = useGameStore((state) => state.updatePlayerScore);
   const setCurrentQuestion = useGameStore((state) => state.setCurrentQuestion);
-  const pointsEarned = roomData.players.find((p) => p.name === playerName)?.score || 0;
+  const pointsEarned = players.find((p) => p.name === playerName)?.score || 0;
 
   // console.log("gamePage", roomData);
 
@@ -245,12 +246,12 @@ export default function GamePage() {
             <TabsContent value="players">
               <Card>
                 <CardHeader>
-                  <CardTitle>Players ({roomData.players.length})</CardTitle>
+                  <CardTitle>Players ({players.length})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px]">
                     <div className="space-y-4">
-                      {roomData.players.map((player) => {
+                      {players.map((player) => {
                         const isCurrentUser = player.name === playerName;
                         return (
                           <div
