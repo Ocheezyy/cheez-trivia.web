@@ -8,6 +8,7 @@ type GameState = {
   isHost: boolean;
   setIsHost: (isHost: boolean) => void;
   joinRoom: (roomData: RoomData) => void;
+  setRoomData: (roomData: RoomData) => void;
   setPlayerName: (name: string) => void;
   updatePlayerScore: (playerName: string, newScore: number) => void;
   setCurrentQuestion: (questionNum: number) => void;
@@ -39,6 +40,11 @@ const useGameStore = create<GameState>()(
       }),
 
     joinRoom: (roomData) =>
+      set((state) => {
+        state.roomData = roomData;
+      }),
+
+    setRoomData: (roomData) =>
       set((state) => {
         state.roomData = roomData;
       }),

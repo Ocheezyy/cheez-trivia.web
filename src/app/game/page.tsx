@@ -163,7 +163,7 @@ export default function GamePage() {
     const points = isCorrect ? basePoints + timeBonus : 0;
 
     if (socket) {
-      socket.emit("submitAnswer", roomData.gameId, playerName, points);
+      socket.emit("submitAnswer", roomData.gameId, playerName, points, Number(roomData.timeLimit) - timeLeft);
     }
     setHasAnswered(true);
   };

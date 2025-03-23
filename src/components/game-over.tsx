@@ -10,59 +10,55 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, Medal, Award, Home, RotateCcw, Crown, Star, Zap, Target } from "lucide-react";
 import confetti from "canvas-confetti";
-
-interface Player {
-  id: number;
-  name: string;
-  score: number;
-  isCurrentUser?: boolean;
-  correctAnswers: number;
-  totalAnswers: number;
-  fastestAnswer: number; // in seconds
-}
+import { RoomData } from "@/lib/types";
+import Spinner from "@/components/spinner";
 
 interface GameOverProps {
-  players: Player[];
-  gameSettings: {
-    category: string;
-    difficulty: string;
-    totalQuestions: number;
-  };
-  onPlayAgain: () => void;
+  roomData?: RoomData;
+  isLoading: boolean;
 }
 
-export default function GameOver({ players, gameSettings, onPlayAgain }: GameOverProps) {
+export default function GameOver({ roomData, isLoading }: GameOverProps) {
   const router = useRouter();
   const [showStats, setShowStats] = useState(false);
   const [animateScores, setAnimateScores] = useState(false);
 
+  const playerName = localStorage.getItem("playerName");
+
   // Sort players by score (highest first)
-  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const sortedPlayers = roomData ? [...roomData.players].sort((a, b) => b.score - a.score) : undefined;
 
   // Get top 3 players for the podium
-  const topPlayers = sortedPlayers.slice(0, 3);
+  const topPlayers = sortedPlayers?.slice(0, 3);
   // Fill with empty players if less than 3
-  while (topPlayers.length < 3) {
+  while (topPlayers && topPlayers.length < 3) {
     topPlayers.push({
-      id: -topPlayers.length,
+      id: "empty",
       name: "No Player",
       score: 0,
       correctAnswers: 0,
       totalAnswers: 0,
       fastestAnswer: 0,
+      hasAnswered: false,
     });
   }
 
   // Get current user's rank
-  const currentUserRank = sortedPlayers.findIndex((player) => player.isCurrentUser) + 1;
+  const currentUserRank = sortedPlayers
+    ? sortedPlayers?.findIndex((player) => player.name === playerName) + 1
+    : 0;
 
   // Find player with most correct answers
-  const mostAccurate = [...players].sort(
-    (a, b) => b.correctAnswers / b.totalAnswers - a.correctAnswers / a.totalAnswers
-  )[0];
+  const mostAccurate = roomData
+    ? [...roomData.players].sort(
+        (a, b) => b.correctAnswers / b.totalAnswers - a.correctAnswers / a.totalAnswers
+      )[0]
+    : undefined;
 
-  // Find player with fastest answers
-  const fastest = [...players].sort((a, b) => a.fastestAnswer - b.fastestAnswer)[0];
+  // Find player with the fastest answers
+  const fastest = roomData
+    ? [...roomData.players].sort((a, b) => a.fastestAnswer - b.fastestAnswer)[0]
+    : undefined;
 
   // Trigger confetti effect when component mounts
   useEffect(() => {
@@ -114,6 +110,23 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
     };
   }, []);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-10 space-y-2">
+            <h1 className="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+              Game Over!
+            </h1>
+            <p className="text-xl text-muted-foreground">Final Scores</p>
+          </div>
+          <Spinner />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background py-8 px-4">
       <div className="max-w-5xl mx-auto">
@@ -132,17 +145,17 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
             <div className="relative">
               <Avatar className="h-24 w-24 border-4 border-[#C0C0C0] shadow-lg">
                 <AvatarFallback className="bg-[#C0C0C0] text-white text-2xl">
-                  {topPlayers[1].name.charAt(0)}
+                  {topPlayers?.[1].name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <Medal className="absolute -bottom-2 -right-2 h-10 w-10 text-[#C0C0C0]" />
             </div>
             <div className="mt-2 text-center">
-              <p className="font-bold">{topPlayers[1].name}</p>
+              <p className="font-bold">{topPlayers?.[1].name}</p>
               <p
                 className={`text-xl font-bold ${animateScores ? "animate-in zoom-in fade-in duration-300" : "opacity-0"}`}
               >
-                {topPlayers[1].score}
+                {topPlayers?.[1].score}
               </p>
             </div>
             <div className="w-full mt-auto">
@@ -160,17 +173,17 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
               </div>
               <Avatar className="h-32 w-32 border-4 border-yellow-500 shadow-xl">
                 <AvatarFallback className="bg-yellow-500 text-white text-3xl">
-                  {topPlayers[0].name.charAt(0)}
+                  {topPlayers?.[0].name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <Trophy className="absolute -bottom-4 -right-4 h-12 w-12 text-yellow-500" />
             </div>
             <div className="mt-3 text-center">
-              <p className="font-bold text-lg">{topPlayers[0].name}</p>
+              <p className="font-bold text-lg">{topPlayers?.[0].name}</p>
               <p
                 className={`text-3xl font-extrabold text-primary ${animateScores ? "animate-in zoom-in fade-in duration-500 delay-300" : "opacity-0"}`}
               >
-                {topPlayers[0].score}
+                {topPlayers?.[0].score}
               </p>
             </div>
             <div className="w-full mt-auto">
@@ -185,17 +198,17 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
             <div className="relative">
               <Avatar className="h-20 w-20 border-4 border-[#CD7F32] shadow-lg">
                 <AvatarFallback className="bg-[#CD7F32] text-white text-xl">
-                  {topPlayers[2].name.charAt(0)}
+                  {topPlayers?.[2].name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <Award className="absolute -bottom-2 -right-2 h-8 w-8 text-[#CD7F32]" />
             </div>
             <div className="mt-2 text-center">
-              <p className="font-bold">{topPlayers[2].name}</p>
+              <p className="font-bold">{topPlayers?.[2].name}</p>
               <p
                 className={`text-lg font-bold ${animateScores ? "animate-in zoom-in fade-in duration-300" : "opacity-0"}`}
               >
-                {topPlayers[2].score}
+                {topPlayers?.[2].score}
               </p>
             </div>
             <div className="w-full mt-auto">
@@ -224,14 +237,15 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
                 <div className="flex items-center justify-center gap-2">
                   <Target className="h-5 w-5 text-green-500" />
                   <span className="text-2xl font-bold">
-                    {players.find((p) => p.isCurrentUser)?.correctAnswers || 0}/{gameSettings.totalQuestions}
+                    {roomData?.players.find((p) => p.name === playerName)?.correctAnswers || 0}/
+                    {roomData?.questions.length}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">Correct Answers</p>
                 <Progress
                   value={
-                    ((players.find((p) => p.isCurrentUser)?.correctAnswers || 0) /
-                      gameSettings.totalQuestions) *
+                    ((roomData?.players.find((p) => p.name === playerName)?.correctAnswers || 0) /
+                      (roomData ? roomData?.questions.length : 0)) *
                     100
                   }
                   className="h-2"
@@ -239,7 +253,9 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
               </div>
 
               <div className="text-center space-y-2">
-                <div className="text-2xl font-bold">{players.find((p) => p.isCurrentUser)?.score || 0}</div>
+                <div className="text-2xl font-bold">
+                  {roomData?.players.find((p) => p.name === playerName)?.score || 0}
+                </div>
                 <p className="text-sm text-muted-foreground">Total Score</p>
               </div>
             </CardContent>
@@ -257,11 +273,11 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
           <Card>
             <ScrollArea className="h-64">
               <div className="p-4 space-y-2">
-                {sortedPlayers.map((player, index) => (
+                {sortedPlayers?.map((player, index) => (
                   <div
                     key={player.id}
                     className={`flex items-center justify-between p-3 rounded-lg ${
-                      player.isCurrentUser ? "bg-primary/10 border border-primary/30" : "bg-muted/50"
+                      player.name === playerName ? "bg-primary/10 border border-primary/30" : "bg-muted/50"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -270,7 +286,7 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
                         <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{player.name}</span>
-                      {player.isCurrentUser && (
+                      {player.name === playerName && (
                         <Badge variant="outline" className="ml-2">
                           You
                         </Badge>
@@ -309,17 +325,20 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarFallback>{mostAccurate.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{mostAccurate ? mostAccurate.name.charAt(0) : "N"}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{mostAccurate.name}</p>
+                      <p className="font-medium">{mostAccurate?.name}</p>
                       <p className="text-sm text-muted-foreground">
-                        {mostAccurate.correctAnswers}/{mostAccurate.totalAnswers} correct
+                        {mostAccurate?.correctAnswers}/{mostAccurate?.totalAnswers} correct
                       </p>
                     </div>
                   </div>
                   <div className="text-lg font-bold text-green-600">
-                    {Math.round((mostAccurate.correctAnswers / mostAccurate.totalAnswers) * 100)}%
+                    {mostAccurate
+                      ? Math.round((mostAccurate.correctAnswers / mostAccurate.totalAnswers) * 100)
+                      : 0}
+                    %
                   </div>
                 </div>
               </CardContent>
@@ -335,14 +354,14 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarFallback>{fastest.name.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{fastest?.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{fastest.name}</p>
+                      <p className="font-medium">{fastest?.name}</p>
                       <p className="text-sm text-muted-foreground">Lightning fast reflexes</p>
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-blue-600">{fastest.fastestAnswer.toFixed(1)}s</div>
+                  <div className="text-lg font-bold text-blue-600">{fastest?.fastestAnswer.toFixed(1)}s</div>
                 </div>
               </CardContent>
             </Card>
@@ -351,7 +370,7 @@ export default function GameOver({ players, gameSettings, onPlayAgain }: GameOve
 
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="gap-2" onClick={onPlayAgain}>
+          <Button size="lg" className="gap-2" onClick={() => router.push("/create-game")}>
             <RotateCcw className="h-4 w-4" />
             Play Again
           </Button>
