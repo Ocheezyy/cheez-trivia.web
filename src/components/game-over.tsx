@@ -22,8 +22,11 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
   const router = useRouter();
   const [showStats, setShowStats] = useState(false);
   const [animateScores, setAnimateScores] = useState(false);
+  const [playerName, setPlayerName] = useState("");
 
-  const playerName = localStorage.getItem("playerName");
+  useEffect(() => {
+    setPlayerName(localStorage.getItem("playerName") || "");
+  }, [setPlayerName]);
 
   // Sort players by score (highest first)
   const sortedPlayers = roomData ? [...roomData.players].sort((a, b) => b.score - a.score) : undefined;
