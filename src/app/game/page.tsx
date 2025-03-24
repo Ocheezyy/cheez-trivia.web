@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,202 +11,34 @@ import { Send, MessageSquare, Users } from "lucide-react";
 import { GameCard } from "@/app/game/game-card";
 import useGameStore from "@/stores/useGameStore";
 import { useSocket } from "@/hooks/useSocket";
-import { toast } from "sonner";
+import useGameSocket from "@/hooks/useGameSocket";
 
 export default function GamePage() {
   const socket = useSocket();
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState<string>("");
-  const [hasAnswered, setHasAnswered] = useState<boolean>(false);
-  const [allAnswered, setAllAnswered] = useState<boolean>(false);
-  const [nextQuestionCountdown, setNextQuestionCountdown] = useState(10);
 
   const roomData = useGameStore((state) => state.roomData);
   const players = useGameStore((state) => state.roomData.players);
   const isHost = useGameStore((state) => state.isHost);
   const playerName = useGameStore((state) => state.playerName);
-  const storeJoinRoom = useGameStore((state) => state.joinRoom);
-  const messageReceived = useGameStore((state) => state.messageReceived);
-  const storeStartGame = useGameStore((state) => state.startGame);
-  const updatePlayerScore = useGameStore((state) => state.updatePlayerScore);
-  const setCurrentQuestion = useGameStore((state) => state.setCurrentQuestion);
+
+  const {
+    hasAnswered,
+    handleSubmitAnswer,
+    handleStartGame,
+    selectedOption,
+    setSelectedOption,
+    allAnswered,
+    nextQuestionCountdown,
+    setNewMessage,
+    newMessage,
+    handleSendMessage,
+    timeLeft,
+  } = useGameSocket({ socket, isHost, roomData, playerName });
+
   const pointsEarned = players.find((p) => p.name === playerName)?.score || 0;
   const sortedPlayersByScore = [...players].sort((a, b) => b.score - a.score);
 
   // console.log("gamePage", roomData);
-
-  useEffect(() => {
-    if (roomData.gameStarted && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    // Time's up logic would go here
-  }, [timeLeft, roomData]);
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    const messageVal = newMessage.trim();
-    if (!messageVal) return;
-
-    if (socket && roomData.gameId) {
-      socket.emit("sendMessage", roomData.gameId, messageVal, playerName);
-    } else {
-      toast.error("Failed to send message");
-    }
-  };
-
-  useEffect(() => {
-    if (!socket) return;
-    const lsRoomId = localStorage.getItem("roomId");
-    const lsPlayerName = localStorage.getItem("playerName");
-    if (!lsRoomId || !lsPlayerName) {
-      console.error(
-        `Required local storage item not found. roomId: ${lsRoomId}, playerName: ${lsPlayerName}`
-      );
-      return;
-    }
-
-    if (isHost) {
-      socket.emit("hostJoin", lsPlayerName, lsRoomId);
-    } else {
-      socket.emit("joinRoom", lsRoomId, lsPlayerName);
-    }
-  }, [socket, isHost]);
-
-  useEffect(() => {
-    if (allAnswered && nextQuestionCountdown > 0) {
-      const timer = setTimeout(() => {
-        setNextQuestionCountdown((prev) => prev - 1);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    } else if (allAnswered && nextQuestionCountdown === 0) {
-      // Maybe show something here
-    }
-  }, [allAnswered, nextQuestionCountdown]);
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("allAnswered", () => {
-      setAllAnswered(true);
-      setNextQuestionCountdown(10);
-    });
-
-    return () => {
-      socket.off("allAnswered");
-    };
-  }, [socket, setAllAnswered]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("hostJoined", (data) => {
-      storeJoinRoom(data);
-      console.log("hostJoined", data);
-    });
-
-    return () => {
-      socket.off("hostJoined");
-    };
-  }, [socket, storeJoinRoom]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("playerJoined", (data) => {
-      storeJoinRoom(data);
-      console.log("playerJoined", data);
-    });
-
-    return () => {
-      socket.off("playerJoined");
-    };
-  }, [socket, storeJoinRoom]);
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("receivedMessage", (message, playerName) => {
-      messageReceived({ message, user: playerName });
-      setNewMessage("");
-      console.log("receivedMessage", message, playerName);
-    });
-
-    return () => {
-      socket.off("receivedMessage");
-    };
-  }, [socket, messageReceived]);
-
-  const handleStartGame = () => {
-    if (socket) {
-      socket.emit("startGame", roomData.gameId);
-    } else {
-      toast.error("Failed to start game");
-    }
-  };
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("gameStarted", () => storeStartGame());
-
-    return () => {
-      socket.off("gameStarted");
-    };
-  }, [socket, storeStartGame]);
-
-  const handleSubmitAnswer = () => {
-    // Calculate points based on time left (faster answers get more points)
-    const currentQuestionObj = roomData.questions[roomData.currentQuestion - 1];
-    const basePoints = 100;
-    const timeBonus = Math.floor(timeLeft * 3.33); // Up to 100 bonus points for fastest answer
-    const isCorrect = selectedOption === currentQuestionObj.correct_answer;
-    const points = isCorrect ? basePoints + timeBonus : 0;
-
-    if (socket) {
-      socket.emit("submitAnswer", roomData.gameId, playerName, points, Number(roomData.timeLimit) - timeLeft);
-    }
-    setHasAnswered(true);
-  };
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("updatePlayerScore", (playerName, score) => {
-      updatePlayerScore(playerName, score);
-      console.log("updatePlayerScore", playerName, score);
-    });
-
-    return () => {
-      socket.off("updatePlayerScore");
-    };
-  }, [socket, updatePlayerScore]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("nextQuestion", (currentQuestionNum) => {
-      console.log("nextQuestion called: " + currentQuestionNum);
-      setCurrentQuestion(currentQuestionNum);
-      setSelectedOption(null);
-      setHasAnswered(false);
-      setAllAnswered(false);
-      setTimeLeft(Number(roomData.timeLimit));
-    });
-
-    return () => {
-      socket.off("nextQuestion");
-    };
-  }, [socket, setCurrentQuestion, roomData.timeLimit]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("gameEnd", () => {
-      // do game end stuff here
-    });
-    return () => {
-      socket.off("gameEnd");
-    };
-  }, [socket]);
 
   return (
     <div className="container mx-auto p-4 max-w-7xl">
