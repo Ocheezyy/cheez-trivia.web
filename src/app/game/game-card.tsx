@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, Play, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import { Player, RoomData } from "@/lib/types";
 import { categories } from "@/lib/constants";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { decode as heDecode } from "he";
-import { capitalizeFirstLetter } from "@/lib/utils";
+import { capitalizeFirstLetter, getButtonColors } from "@/lib/utils";
 
 type Question = {
   question: string;
@@ -26,7 +26,7 @@ type GameCardProps = {
   setSelectedOption: (option: string) => void;
   question?: Question;
   handleStartGame: () => void;
-  handleSubmitAnswer: () => void;
+  handleSubmitAnswer: (answer: string) => void;
   pointsEarned: number;
   allAnswered: boolean;
   nextQuestionCountdown: number;
@@ -40,7 +40,6 @@ export const GameCard = ({
   questionAnswered,
   timeLeft,
   selectedOption,
-  setSelectedOption,
   handleStartGame,
   pointsEarned,
   allAnswered,
@@ -269,21 +268,19 @@ export const GameCard = ({
               <Button
                 key={`answer-${index}`}
                 variant={selectedOption === answer ? "default" : "outline"}
-                className={`h-auto py-6 text-lg justify-start ${
-                  selectedOption === answer ? "border-primary" : ""
-                }`}
-                onClick={() => setSelectedOption(answer)}
+                className={`h-auto py-6 text-lg justify-start whitespace-normal break-words ${getButtonColors(index)}`}
+                onClick={() => handleSubmitAnswer(answer)}
               >
                 <span className="mr-2">{String.fromCharCode(65 + index)}.</span> {heDecode(answer)}
               </Button>
             ))}
           </div>
         </CardContent>
-        <CardFooter>
-          <Button className="w-full" disabled={!selectedOption} onClick={handleSubmitAnswer}>
-            Submit Answer
-          </Button>
-        </CardFooter>
+        {/*<CardFooter>*/}
+        {/*<Button className="w-full" disabled={!selectedOption} onClick={handleSubmitAnswer}>*/}
+        {/*  Submit Answer*/}
+        {/*</Button>*/}
+        {/*</CardFooter>*/}
       </Card>
     </>
   );

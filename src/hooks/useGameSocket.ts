@@ -144,17 +144,18 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     };
   }, [socket, storeStartGame]);
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = (answer: string) => {
     // Calculate points based on time left (faster answers get more points)
     const currentQuestionObj = roomData.questions[roomData.currentQuestion - 1];
     const basePoints = 100;
     const timeBonus = Math.floor(timeLeft * 3.33); // Up to 100 bonus points for fastest answer
-    const isCorrect = selectedOption === currentQuestionObj.correct_answer;
+    const isCorrect = answer === currentQuestionObj.correct_answer;
     const points = isCorrect ? basePoints + timeBonus : 0;
 
     if (socket) {
       socket.emit("submitAnswer", roomData.gameId, playerName, points, Number(roomData.timeLimit) - timeLeft);
     }
+    setSelectedOption(answer);
     setHasAnswered(true);
   };
 
