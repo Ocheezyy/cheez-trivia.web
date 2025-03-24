@@ -25,7 +25,9 @@ export default function HomePage() {
       <div className="grid md:grid-cols-2 gap-8">
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Join a Game</CardTitle>
+            <CardTitle role="heading" aria-level={2}>
+              Join a Game
+            </CardTitle>
             <CardDescription>Enter your details to join an existing game</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
