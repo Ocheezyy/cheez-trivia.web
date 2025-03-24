@@ -65,6 +65,8 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
 
   // Trigger confetti effect when component mounts
   useEffect(() => {
+    if (!roomData) return;
+
     // Trigger confetti
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
@@ -74,7 +76,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
       return Math.random() * (max - min) + min;
     }
 
-    const interval: NodeJS.Timeout = setInterval(() => {
+    const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
 
       if (timeLeft <= 0) {
@@ -111,7 +113,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
       clearTimeout(scoreTimer);
       clearTimeout(statsTimer);
     };
-  }, []);
+  }, [roomData]);
 
   if (isLoading) {
     return (

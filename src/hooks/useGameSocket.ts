@@ -191,7 +191,7 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     if (!socket) return;
 
     socket.on("gameEnd", async () => {
-      await router.push(`/game-over/${roomData.gameId}`);
+      router.push(`/game-over/${roomData.gameId}`);
     });
     return () => {
       socket.off("gameEnd");
