@@ -91,7 +91,9 @@ export default function GamePage() {
                           <div
                             key={player.id}
                             className={`flex items-center justify-between p-3 rounded-lg ${
-                              isCurrentUser ? "bg-muted" : ""
+                              isCurrentUser
+                                ? "border-primary bg-primary/5 dark:bg-primary/10"
+                                : "border-muted-foreground/20"
                             }`}
                           >
                             <div className="flex items-center gap-3">

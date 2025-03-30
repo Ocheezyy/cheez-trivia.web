@@ -117,7 +117,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background py-8 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background dark:from-primary/10 dark:to-background py-8 px-4 transition-colors duration-300">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10 space-y-2">
@@ -133,11 +133,11 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-primary/20 to-background dark:from-primary/10 dark:to-background py-8 px-4 transition-colors duration-300">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10 space-y-2">
-          <h1 className="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+          <h1 className="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 dark:from-primary dark:to-purple-400">
             Game Over!
           </h1>
           <p className="text-xl text-muted-foreground">Final Scores</p>
@@ -164,7 +164,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
               </p>
             </div>
             <div className="w-full mt-auto">
-              <div className="h-32 bg-[#C0C0C0]/80 rounded-t-lg flex items-end justify-center pb-2">
+              <div className="h-32 bg-[#C0C0C0]/80 dark:bg-[#C0C0C0]/60 rounded-t-lg flex items-end justify-center pb-2">
                 <span className="text-2xl font-bold text-white">2</span>
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
               </p>
             </div>
             <div className="w-full mt-auto">
-              <div className="h-40 bg-yellow-500/80 rounded-t-lg flex items-end justify-center pb-2">
+              <div className="h-40 bg-yellow-500/80 dark:bg-yellow-500/60 rounded-t-lg flex items-end justify-center pb-2">
                 <span className="text-3xl font-bold text-white">1</span>
               </div>
             </div>
@@ -217,7 +217,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
               </p>
             </div>
             <div className="w-full mt-auto">
-              <div className="h-24 bg-[#CD7F32]/80 rounded-t-lg flex items-end justify-center pb-2">
+              <div className="h-24 bg-[#CD7F32]/80 dark:bg-[#CD7F32]/60 rounded-t-lg flex items-end justify-center pb-2">
                 <span className="text-xl font-bold text-white">3</span>
               </div>
             </div>
@@ -322,7 +322,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Most Accurate Player */}
             <Card className="overflow-hidden">
-              <div className="bg-green-500/10 p-4 flex items-center gap-3">
+              <div className="bg-green-500/10 dark:bg-green-500/5 p-4 flex items-center gap-3">
                 <Target className="h-6 w-6 text-green-500" />
                 <h3 className="font-bold">Most Accurate Player</h3>
               </div>
@@ -339,7 +339,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-green-600">
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
                     {mostAccurate
                       ? Math.round((mostAccurate.correctAnswers / mostAccurate.totalAnswers) * 100)
                       : 0}
@@ -351,7 +351,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
 
             {/* Fastest Player */}
             <Card className="overflow-hidden">
-              <div className="bg-blue-500/10 p-4 flex items-center gap-3">
+              <div className="bg-blue-500/10 dark:bg-blue-500/5 p-4 flex items-center gap-3">
                 <Zap className="h-6 w-6 text-blue-500" />
                 <h3 className="font-bold">Fastest Player</h3>
               </div>
@@ -366,7 +366,9 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
                       <p className="text-sm text-muted-foreground">Lightning fast reflexes</p>
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-blue-600">{fastest?.fastestAnswer.toFixed(1)}s</div>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    {fastest?.fastestAnswer.toFixed(1)}s
+                  </div>
                 </div>
               </CardContent>
             </Card>

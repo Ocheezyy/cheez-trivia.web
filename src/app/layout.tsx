@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,11 +28,18 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <QueryProvider>
-          {children}
-          <Toaster />
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+              <header className="container mx-auto p-4 flex justify-end">
+                <ThemeToggle />
+              </header>
+              {children}
+            </div>
+            <Toaster />
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>
