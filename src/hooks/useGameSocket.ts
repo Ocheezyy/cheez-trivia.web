@@ -80,7 +80,7 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     if (!socket) return;
     socket.on("allAnswered", () => {
       setAllAnswered(true);
-      setNextQuestionCountdown(10);
+      setNextQuestionCountdown(5);
     });
 
     return () => {
