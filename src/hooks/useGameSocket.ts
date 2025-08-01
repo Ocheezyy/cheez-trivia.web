@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import useGameStore from "@/stores/useGameStore";
@@ -19,6 +19,7 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
   const [hasAnswered, setHasAnswered] = useState(false);
   const [timeLeft, setTimeLeft] = useState(Number(roomData?.timeLimit) || 30);
   const [newMessage, setNewMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const setCurrentQuestion = useGameStore((state) => state.setCurrentQuestion);
   const storeJoinRoom = useGameStore((state) => state.joinRoom);
@@ -26,34 +27,111 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
   const storeStartGame = useGameStore((state) => state.startGame);
   const updatePlayerScore = useGameStore((state) => state.updatePlayerScore);
 
+  // Keep track of timers for cleanup
+  const timers = useRef<NodeJS.Timeout[]>([]);
+
+  // Helper to safely set timeouts
+  const safeSetTimeout = useCallback((callback: () => void, delay: number) => {
+    const timer = setTimeout(callback, delay);
+    timers.current.push(timer);
+    return timer;
+  }, []);
+
+  // Cleanup all timers
+  const cleanupTimers = useCallback(() => {
+    timers.current.forEach((timer) => clearTimeout(timer));
+    timers.current = [];
+  }, []);
+
+  // Game timer effect
   useEffect(() => {
     if (roomData.gameStarted && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      const timer = safeSetTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     }
-    // Time's up logic would go here
-  }, [timeLeft, roomData]);
+  }, [timeLeft, roomData.gameStarted, safeSetTimeout]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    const messageVal = newMessage.trim();
-    if (!messageVal) return;
+  // Socket event handlers
+  const socketEventHandlers = useCallback(
+    () => ({
+      allAnswered: () => {
+        setAllAnswered(true);
+        setNextQuestionCountdown(5);
+      },
+      hostJoined: (data: RoomData) => {
+        storeJoinRoom(data);
+      },
+      playerJoined: (data: RoomData) => {
+        storeJoinRoom(data);
+      },
+      receivedMessage: (message: string, user: string) => {
+        messageReceived({ message, user });
+        setNewMessage("");
+      },
+      gameStarted: () => {
+        storeStartGame();
+      },
+      updatePlayerScore: (name: string, score: number) => {
+        updatePlayerScore(name, score);
+      },
+      nextQuestion: (currentQuestionNum: number) => {
+        setCurrentQuestion(currentQuestionNum);
+        setSelectedOption(null);
+        setHasAnswered(false);
+        setAllAnswered(false);
+        setTimeLeft(Number(roomData.timeLimit));
+      },
+      gameEnd: async () => {
+        cleanupTimers();
+        router.push(`/game-over/${roomData.gameId}`);
+      },
+      error: ({ message }: { message: string }) => {
+        toast.error(message);
+      },
+    }),
+    [
+      storeJoinRoom,
+      messageReceived,
+      storeStartGame,
+      updatePlayerScore,
+      setCurrentQuestion,
+      roomData.timeLimit,
+      roomData.gameId,
+      router,
+      cleanupTimers,
+    ]
+  );
 
-    if (socket && roomData.gameId) {
-      socket.emit("sendMessage", roomData.gameId, messageVal, playerName);
-    } else {
-      toast.error("Failed to send message");
-    }
-  };
-
+  // Setup socket event listeners
   useEffect(() => {
     if (!socket) return;
+
+    const handlers = socketEventHandlers();
+
+    // Register all event handlers
+    Object.entries(handlers).forEach(([event, handler]) => {
+      socket.on(event as keyof typeof handlers, handler);
+    });
+
+    // Cleanup function
+    return () => {
+      Object.keys(handlers).forEach((event) => {
+        socket.off(event);
+      });
+      cleanupTimers();
+    };
+  }, [socket, socketEventHandlers, cleanupTimers]);
+
+  // Initial room join
+  useEffect(() => {
+    if (!socket) return;
+
     const lsRoomId = localStorage.getItem("roomId");
     const lsPlayerName = localStorage.getItem("playerName");
+
     if (!lsRoomId || !lsPlayerName) {
-      console.error(
-        `Required local storage item not found. roomId: ${lsRoomId}, playerName: ${lsPlayerName}`
-      );
+      toast.error("Session information not found");
+      router.push("/");
       return;
     }
 
@@ -62,142 +140,78 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     } else {
       socket.emit("joinRoom", lsRoomId, lsPlayerName);
     }
-  }, [socket, isHost]);
+  }, [socket, isHost, router]);
 
-  useEffect(() => {
-    if (allAnswered && nextQuestionCountdown > 0) {
-      const timer = setTimeout(() => {
-        setNextQuestionCountdown((prev) => prev - 1);
-      }, 1000);
+  // Message handling
+  const handleSendMessage = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const messageVal = newMessage.trim();
+      if (!messageVal) return;
 
-      return () => clearTimeout(timer);
-    } else if (allAnswered && nextQuestionCountdown === 0) {
-      // Maybe show something here
-    }
-  }, [allAnswered, nextQuestionCountdown]);
+      if (socket && roomData.gameId) {
+        socket.emit("sendMessage", roomData.gameId, messageVal, playerName);
+      } else {
+        toast.error("Failed to send message");
+      }
+    },
+    [socket, roomData.gameId, newMessage, playerName]
+  );
 
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("allAnswered", () => {
-      setAllAnswered(true);
-      setNextQuestionCountdown(5);
-    });
-
-    return () => {
-      socket.off("allAnswered");
-    };
-  }, [socket, setAllAnswered]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("hostJoined", (data) => {
-      storeJoinRoom(data);
-      console.log("hostJoined", data);
-    });
-
-    return () => {
-      socket.off("hostJoined");
-    };
-  }, [socket, storeJoinRoom]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("playerJoined", (data) => {
-      storeJoinRoom(data);
-      console.log("playerJoined", data);
-    });
-
-    return () => {
-      socket.off("playerJoined");
-    };
-  }, [socket, storeJoinRoom]);
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("receivedMessage", (message, playerName) => {
-      messageReceived({ message, user: playerName });
-      setNewMessage("");
-      console.log("receivedMessage", message, playerName);
-    });
-
-    return () => {
-      socket.off("receivedMessage");
-    };
-  }, [socket, messageReceived]);
-
-  const handleStartGame = () => {
+  // Game control handlers
+  const handleStartGame = useCallback(() => {
     if (socket) {
       socket.emit("startGame", roomData.gameId);
     } else {
       toast.error("Failed to start game");
     }
-  };
+  }, [socket, roomData.gameId]);
 
+  const handleSubmitAnswer = useCallback(
+    (answer: string) => {
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+
+      try {
+        const currentQuestionObj = roomData.questions[roomData.currentQuestion - 1];
+        const basePoints = 100;
+        const timeBonus = Math.floor(timeLeft * 3.33);
+        const isCorrect = answer === currentQuestionObj.correct_answer;
+        const points = isCorrect ? basePoints + timeBonus : 0;
+
+        if (socket) {
+          socket.emit(
+            "submitAnswer",
+            roomData.gameId,
+            playerName,
+            points,
+            Number(roomData.timeLimit) - timeLeft
+          );
+        }
+        setSelectedOption(answer);
+        setHasAnswered(true);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      isSubmitting,
+      roomData.questions,
+      roomData.currentQuestion,
+      timeLeft,
+      socket,
+      roomData.gameId,
+      playerName,
+      roomData.timeLimit,
+    ]
+  );
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (!socket) return;
-    socket.on("gameStarted", () => storeStartGame());
-
     return () => {
-      socket.off("gameStarted");
+      cleanupTimers();
     };
-  }, [socket, storeStartGame]);
-
-  const handleSubmitAnswer = (answer: string) => {
-    // Calculate points based on time left (faster answers get more points)
-    const currentQuestionObj = roomData.questions[roomData.currentQuestion - 1];
-    const basePoints = 100;
-    const timeBonus = Math.floor(timeLeft * 3.33); // Up to 100 bonus points for fastest answer
-    const isCorrect = answer === currentQuestionObj.correct_answer;
-    const points = isCorrect ? basePoints + timeBonus : 0;
-
-    if (socket) {
-      socket.emit("submitAnswer", roomData.gameId, playerName, points, Number(roomData.timeLimit) - timeLeft);
-    }
-    setSelectedOption(answer);
-    setHasAnswered(true);
-  };
-
-  useEffect(() => {
-    if (!socket) return;
-    socket.on("updatePlayerScore", (playerName, score) => {
-      updatePlayerScore(playerName, score);
-      console.log("updatePlayerScore", playerName, score);
-    });
-
-    return () => {
-      socket.off("updatePlayerScore");
-    };
-  }, [socket, updatePlayerScore]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("nextQuestion", (currentQuestionNum) => {
-      console.log("nextQuestion called: " + currentQuestionNum);
-      setCurrentQuestion(currentQuestionNum);
-      setSelectedOption(null);
-      setHasAnswered(false);
-      setAllAnswered(false);
-      setTimeLeft(Number(roomData.timeLimit));
-    });
-
-    return () => {
-      socket.off("nextQuestion");
-    };
-  }, [socket, setCurrentQuestion, roomData.timeLimit]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("gameEnd", async () => {
-      router.push(`/game-over/${roomData.gameId}`);
-    });
-    return () => {
-      socket.off("gameEnd");
-    };
-  }, [roomData.gameId, router, socket]);
+  }, [cleanupTimers]);
 
   return {
     allAnswered,
