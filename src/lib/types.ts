@@ -19,6 +19,11 @@ export type CreateRoomResponse = {
   playerName: string;
 };
 
+export type ErrorResponse = {
+  message: string;
+  code?: number;
+};
+
 export type JoinRoomBody = {
   playerName: string;
   roomId: string;
@@ -48,6 +53,7 @@ type SocketResponseEvents = {
   reconnected: (data: RoomData) => void;
   reconnectFailed: (reason: string) => void;
   allAnswered: () => void;
+  error: ({ message, code }: ErrorResponse) => void;
 };
 
 export type Question = {

@@ -12,8 +12,9 @@ import { GameCard } from "@/app/game/game-card";
 import useGameStore from "@/stores/useGameStore";
 import { useSocket } from "@/hooks/useSocket";
 import useGameSocket from "@/hooks/useGameSocket";
+import { SocketErrorBoundary } from "@/components/socket-error-boundary";
 
-export default function GamePage() {
+function GamePage() {
   const socket = useSocket();
 
   const roomData = useGameStore((state) => state.roomData);
@@ -171,5 +172,23 @@ export default function GamePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ErrorBoundaryGamePage() {
+  return (
+    <SocketErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error("Game error:", error, errorInfo);
+      }}
+      fallback={
+        <div className="text-center p-8">
+          <h2>Game Connection Error</h2>
+          <p>Please refresh the page to try again.</p>
+        </div>
+      }
+    >
+      <GamePage />
+    </SocketErrorBoundary>
   );
 }
