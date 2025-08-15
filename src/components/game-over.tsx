@@ -367,7 +367,7 @@ export default function GameOver({ roomData, isLoading }: GameOverProps) {
                     </div>
                   </div>
                   <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {fastest?.fastestAnswer.toFixed(1)}s
+                    {fastest?.fastestAnswer ? Math.abs(30 - fastest.fastestAnswer).toFixed(1) : 30.0}s
                   </div>
                 </div>
               </CardContent>
