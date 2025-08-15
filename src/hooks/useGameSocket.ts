@@ -82,8 +82,14 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
         setTimeLeft(Number(roomData.timeLimit));
       },
       gameEnd: async () => {
+        console.log("Received gameEnd event"); // Add logging
         cleanupTimers();
-        router.push(`/game-over/${roomData.gameId}`);
+        try {
+          router.push(`/game-over/${roomData.gameId}`);
+        } catch (error) {
+          console.error("Failed to navigate to game-over:", error);
+          toast.error("Failed to end game properly");
+        }
       },
       error: ({ message }: { message: string }) => {
         toast.error(message);
@@ -111,6 +117,7 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     // Register all event handlers
     Object.entries(handlers).forEach(([event, handler]) => {
       socket.on(event as keyof typeof handlers, handler);
+      console.log(`Registered handler for ${event} event`); // Add logging
     });
 
     // Cleanup function
