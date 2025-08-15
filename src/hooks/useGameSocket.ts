@@ -51,12 +51,24 @@ const useGameSocket = ({ socket, isHost, roomData, playerName }: UseGameSocketPr
     }
   }, [timeLeft, roomData.gameStarted, safeSetTimeout]);
 
+  // Question countdown effect
+  useEffect(() => {
+    if (allAnswered && nextQuestionCountdown > 0) {
+      const timer = safeSetTimeout(() => {
+        setNextQuestionCountdown((prev) => prev - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [allAnswered, nextQuestionCountdown, safeSetTimeout]);
+
   // Socket event handlers
   const socketEventHandlers = useCallback(
     () => ({
       allAnswered: () => {
         setAllAnswered(true);
         setNextQuestionCountdown(5);
+        console.log("All answered, starting next question countdown");
       },
       hostJoined: (data: RoomData) => {
         storeJoinRoom(data);
